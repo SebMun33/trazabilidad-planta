@@ -56,6 +56,13 @@ def test_ruta_sugerida_sale_de_planta_ref(demo):
     assert ruta[0].descripcion == "Desbaste y terminación"
 
 
+def test_ruta_sugerida_respeta_renglon_con_operaciones_repetidas(demo):
+    # FoxPro permite dos secuencias en un plano: el orden es el del renglón.
+    ruta = ruta_sugerida("MZ-500 REV2")
+    assert [op.maquina_id for op in ruta] == [101, 103, 105, 104]
+    assert ruta[-1].descripcion.startswith("Segunda secuencia")
+
+
 def test_crear_trabajo_graba_revision_uno_con_operaciones():
     rev = crear_trabajo(_datos(cantidad=Decimal(10)), _ops(3), "ana")
     assert rev.revision == 1

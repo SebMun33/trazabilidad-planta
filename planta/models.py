@@ -270,7 +270,10 @@ class CotizacionSinPedido(models.Model):
 
 
 class Ruta(models.Model):
-    """Hoja de ruta estándar del plano (DATA0430 + descripción de DATA0420)."""
+    """Hoja de ruta estándar del plano (DATA0420 con la máquina de DATA0430).
+
+    La clave es plano + renglón: un plano puede repetir el número de operación.
+    """
 
     ruta_id = models.TextField(primary_key=True)
     plano = models.TextField()
@@ -278,11 +281,12 @@ class Ruta(models.Model):
     maquina_id = models.IntegerField(null=True)
     descripcion = models.TextField(null=True)
     piezas_hora = models.DecimalField(max_digits=12, decimal_places=2, null=True)
+    renglon = models.IntegerField()
 
     class Meta:
         managed = False
         db_table = "rutas"
-        ordering = ["plano", "operacion_nro"]
+        ordering = ["plano", "renglon"]
 
     def __str__(self) -> str:
         return f"{self.plano} op. {self.operacion_nro}"

@@ -46,7 +46,7 @@ def ruta_sugerida(plano: str) -> list[DatosOperacion]:
     """Hoja de ruta estándar del plano según FoxPro (vía planta_ref.rutas)."""
     return [
         DatosOperacion(maquina_id=r.maquina_id, descripcion=r.descripcion)
-        for r in Ruta.objects.filter(plano=plano).order_by("operacion_nro")
+        for r in Ruta.objects.filter(plano=plano).order_by("renglon")
     ]
 
 

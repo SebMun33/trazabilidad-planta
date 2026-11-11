@@ -51,13 +51,28 @@ CREATE TABLE IF NOT EXISTS planta_demo.cotizaciones_lineas (
     PRIMARY KEY (cotizacion_id, renglon)
 );
 
+-- Las bases creadas antes de agregar `renglon` se recrean (solo datos de demo).
+DO $$
+BEGIN
+    IF to_regclass('planta_demo.rutas') IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'planta_demo' AND table_name = 'rutas' AND column_name = 'renglon'
+    ) THEN
+        DROP TABLE planta_demo.rutas CASCADE;
+    END IF;
+END
+$$;
+
+-- Clave plano + renglón: como en FoxPro, un plano puede repetir el número de
+-- operación (dos secuencias en la misma hoja de ruta).
 CREATE TABLE IF NOT EXISTS planta_demo.rutas (
     plano         text NOT NULL,
+    renglon       integer NOT NULL,
     operacion_nro integer NOT NULL,
     maquina_id    integer,
     descripcion   text,
     piezas_hora   numeric(12, 2),
-    PRIMARY KEY (plano, operacion_nro)
+    PRIMARY KEY (plano, renglon)
 );
 
 CREATE TABLE IF NOT EXISTS planta_demo.cargas (
@@ -113,12 +128,13 @@ WHERE NOT l.tiene_pedido;
 
 CREATE OR REPLACE VIEW planta_ref.rutas AS
 SELECT
-    format('%s#%s', plano, operacion_nro)            AS ruta_id,
+    format('%s#%s', plano, renglon)                  AS ruta_id,
     plano,
     operacion_nro,
     maquina_id,
     descripcion,
-    piezas_hora
+    piezas_hora,
+    renglon
 FROM planta_demo.rutas;
 
 CREATE OR REPLACE VIEW planta_ref.ultima_publicacion AS

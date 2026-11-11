@@ -35,19 +35,21 @@ PLANOS = [
     ("MZ-500 REV2", "Maza de rueda"),
 ]
 
-# (plano, nro, maquina, descripcion, piezas/hora)
+# (plano, renglón, operación, máquina, descripción, piezas/hora). Como en FoxPro,
+# un plano puede repetir el número de operación (MZ-500 REV2 tiene dos secuencias).
 RUTAS = [
-    ("BJ-100", 1, 102, "Tornear exterior e interior", 20),
-    ("BJ-100", 2, 105, "Agujero de lubricación", 60),
-    ("EJ-220/A", 1, 101, "Desbaste y terminación", 8),
-    ("EJ-220/A", 2, 103, "Fresar chavetero", 12),
-    ("EJ-220/A", 3, 107, "Rectificar asiento de rodamiento", 15),
-    ("PR 15-3", 1, 104, "Cortar y tornear", 90),
-    ("PR 15-3", 2, 106, "Laminar rosca", 300),
-    ("SEP-08", 1, 102, None, 120),
-    ("MZ-500 REV2", 1, 101, "Tornear cara y alojamientos", 4),
-    ("MZ-500 REV2", 2, 103, "Agujeros de bulones", 6),
-    ("MZ-500 REV2", 3, 105, "Roscar agujeros", 10),
+    ("BJ-100", 1, 1, 102, "Tornear exterior e interior", 20),
+    ("BJ-100", 2, 2, 105, "Agujero de lubricación", 60),
+    ("EJ-220/A", 1, 1, 101, "Desbaste y terminación", 8),
+    ("EJ-220/A", 2, 2, 103, "Fresar chavetero", 12),
+    ("EJ-220/A", 3, 3, 107, "Rectificar asiento de rodamiento", 15),
+    ("PR 15-3", 1, 1, 104, "Cortar y tornear", 90),
+    ("PR 15-3", 2, 2, 106, "Laminar rosca", 300),
+    ("SEP-08", 1, 1, 102, None, 120),
+    ("MZ-500 REV2", 1, 1, 101, "Tornear cara y alojamientos", 4),
+    ("MZ-500 REV2", 2, 2, 103, "Agujeros de bulones", 6),
+    ("MZ-500 REV2", 3, 3, 105, "Roscar agujeros", 10),
+    ("MZ-500 REV2", 4, 1, 104, "Segunda secuencia: tornear contracara", 5),
 ]
 
 OPERARIOS = ["Lucía Demo", "Martín Demo", "Carla Demo"]
@@ -85,7 +87,7 @@ def cargar_demo(hoy: date | None = None) -> dict[str, int]:
         cur.executemany("INSERT INTO planta_demo.maquinas VALUES (%s, %s, %s)", MAQUINAS)
         cur.executemany("INSERT INTO planta_demo.clientes VALUES (%s, %s)", CLIENTES)
         cur.executemany("INSERT INTO planta_demo.planos VALUES (%s, %s)", PLANOS)
-        cur.executemany("INSERT INTO planta_demo.rutas VALUES (%s, %s, %s, %s, %s)", RUTAS)
+        cur.executemany("INSERT INTO planta_demo.rutas VALUES (%s, %s, %s, %s, %s, %s)", RUTAS)
         cur.executemany(
             "INSERT INTO planta_demo.pedidos_lineas VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
             [
