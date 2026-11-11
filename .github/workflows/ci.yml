@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  calidad:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: planta
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d planta"
+          --health-interval 2s --health-timeout 3s --health-retries 20
+    env:
+      # Credenciales SOLO del Postgres efímero de CI.
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      DJANGO_SECRET_KEY: clave-solo-para-ci-no-usar-en-produccion-0123456789abcdef
+      DATABASE_URL: postgres://app_planta:app_local@localhost:5432/planta
+      DATABASE_URL_OWNER: postgres://app_planta_owner:owner_local@localhost:5432/planta
+      TEST_APP_PLANTA_PASSWORD: app_local
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Instalar dependencias
+        run: uv sync --locked
+      - name: Lint y formato
+        run: |
+          uv run ruff format --check .
+          uv run ruff check .
+      - name: Preparar Postgres (roles, esquemas, vistas de ejemplo)
+        run: bash ops/dev/inicializar_postgres_local.sh
+      - name: Migraciones
+        run: |
+          uv run python manage.py makemigrations --check --dry-run
+          bash ops/migrar.sh
+      - name: Tests
+        run: uv run pytest --cov=planta --cov-report=term-missing
+      - name: check --deploy (oficina y planta)
+        run: |
+          DJANGO_SETTINGS_MODULE=config.settings.prod_oficina uv run python manage.py check --deploy --fail-level WARNING
+          DJANGO_SETTINGS_MODULE=config.settings.prod_planta uv run python manage.py check --deploy --fail-level WARNING
