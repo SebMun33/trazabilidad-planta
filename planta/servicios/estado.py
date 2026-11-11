@@ -106,13 +106,23 @@ class EstadoTrabajo:
         return (-self.revision.urgencia, fecha, self.revision.creado_en)
 
 
-def eventos_vigentes(eventos: list[Evento]) -> list[Evento]:
-    """Eventos de trabajo que no fueron anulados, en orden cronológico."""
+def eventos_vigentes(eventos: list) -> list:
+    """Eventos de trabajo que no fueron anulados, en orden cronológico.
+
+    Acepta cualquier objeto con `evento_id`, `tipo`, `anula_evento_id`,
+    `ocurrido_en` y `registrado_en`: lo usan también el kiosco con su copia local.
+    """
     anulados = {e.anula_evento_id for e in eventos if e.tipo == Evento.Tipo.ANULACION}
     vigentes = [
         e for e in eventos if e.tipo != Evento.Tipo.ANULACION and e.evento_id not in anulados
     ]
     return sorted(vigentes, key=lambda e: (e.ocurrido_en, e.registrado_en))
+
+
+def estado_por_operacion(vigentes: list) -> dict:
+    """{operacion_id: (estado, último evento vigente)} a partir de eventos vigentes."""
+    ultimo = {e.operacion_id: e for e in vigentes}
+    return {op: (_ESTADO_POR_EVENTO[e.tipo], e) for op, e in ultimo.items()}
 
 
 def ultimas_revisiones(trabajo_ids=None):
@@ -139,14 +149,14 @@ def estado_trabajos(trabajo_ids=None, *, solo_activos: bool = False) -> list[Est
     resultado = []
     for revision in revisiones:
         vigentes = eventos_vigentes(eventos_por_trabajo[revision.trabajo_id])
-        ultimo_por_operacion = {e.operacion_id: e for e in vigentes}
+        por_operacion = estado_por_operacion(vigentes)
         operaciones = []
         for op in sorted(revision.operaciones.all(), key=lambda o: o.operacion_nro):
-            ultimo = ultimo_por_operacion.get(op.operacion_id)
+            estado, ultimo = por_operacion.get(op.operacion_id, (PENDIENTE, None))
             operaciones.append(
                 EstadoOperacion(
                     operacion=op,
-                    estado=_ESTADO_POR_EVENTO[ultimo.tipo] if ultimo else PENDIENTE,
+                    estado=estado,
                     ultimo_evento=ultimo,
                     maquina=maquinas.get(op.maquina_id),
                 )
