@@ -38,6 +38,7 @@ ignore = ["RUF012"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S101", "S105", "S106", "S608"]
+"conftest.py" = ["S608"]
 # Las columnas de texto opcionales son NULL a propósito: es el contrato con el
 # data warehouse (NULL = sin dato). Ver docs/decisiones/0005-esquemas-y-search-path.md.
 "planta/models.py" = ["DJ001"]

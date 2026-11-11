@@ -1,3 +1,5 @@
+"""Fixtures compartidas por los tests de todas las apps."""
+
 import uuid
 from datetime import UTC, datetime
 
