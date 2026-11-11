@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block titulo %}Ingresar · Trazabilidad de planta{% endblock %}
+{% block cuerpo %}
+<main class="login">
+  <form method="post" class="tarjeta">
+    {% csrf_token %}
+    <h1>Trazabilidad de planta</h1>
+    <p class="suave">Ingresá con tu usuario de oficina.</p>
+    {% if form.errors %}<p class="alerta alerta-error">Usuario o contraseña incorrectos.</p>{% endif %}
+    <label>Usuario {{ form.username }}</label>
+    <label>Contraseña {{ form.password }}</label>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit" class="boton boton-primario">Ingresar</button>
+  </form>
+</main>
+{% endblock %}
