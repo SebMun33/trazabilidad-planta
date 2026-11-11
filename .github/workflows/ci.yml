@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -30,6 +30,7 @@ jobs:
       DJANGO_SECRET_KEY: clave-solo-para-ci-no-usar-en-produccion-0123456789abcdef
       DATABASE_URL: postgres://app_planta:app_local@localhost:5432/planta
       DATABASE_URL_OWNER: postgres://app_planta_owner:owner_local@localhost:5432/planta
+      TEST_DATABASE_URL: postgres://app_planta_owner:owner_local@localhost:5432/planta
       TEST_APP_PLANTA_PASSWORD: app_local
     steps:
       - uses: actions/checkout@v4
