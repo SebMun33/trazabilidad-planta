@@ -63,6 +63,7 @@ def _pedidos(hoy: date):
         (3002, 1, "4410", 9, 2, "PR 15-3", 1000, 0),
         (3003, 1, "A-55", 4, 3, "MZ-500 REV2", 12, 0),
         (3004, 1, "991", 60, 4, "SEP-08", 500, 500),  # entregado: no aparece
+        (2950, 1, "OC-VIEJA", 500, 2, "BJ-100", 80, 0),  # nunca se cerró en FoxPro
     ]
 
 

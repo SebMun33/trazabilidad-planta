@@ -25,7 +25,7 @@ def test_seed_demo_es_idempotente():
     assert Maquina.objects.count() == 7
     assert Operario.objects.count() == 3
     # Solo renglones con pendiente > 0 y cotizaciones sin pedido.
-    assert PedidoPendiente.objects.count() == 4
+    assert PedidoPendiente.objects.count() == 5
     assert CotizacionSinPedido.objects.count() == 2
     assert Ruta.objects.filter(plano="EJ-220/A").count() == 3
     assert UltimaPublicacion.objects.get().publicado_en is not None

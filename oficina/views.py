@@ -1,6 +1,6 @@
 """Parte A: la oficina prepara la lista de pendientes y controla la jornada."""
 
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib import messages
 from django.db.models import Q
@@ -35,6 +35,9 @@ from .forms import MotivoForm, OperacionFormSet, TrabajoForm, opciones_maquina
 from .permisos import requiere_oficina, requiere_supervisor
 
 LIMITE_LISTADO = 200
+# FoxPro tiene renglones de pedido que nunca se cerraron (entregas sin cargar):
+# por defecto se ocultan los de más de un año, con opción de verlos todos.
+DIAS_PEDIDOS_RECIENTES = 365
 
 FILTROS_ESTADO = {
     "activos": "Activos",
@@ -94,7 +97,9 @@ def _texto_busqueda(t: est.EstadoTrabajo) -> str:
 
 
 # --- orígenes (FoxPro) -------------------------------------------------------
-def _listado_origen(request, *, modelo, campos_texto, campo_numero, tabla, titulo):
+def _listado_origen(
+    request, *, modelo, campos_texto, campo_numero, tabla, titulo, campo_fecha=None
+):
     texto = request.GET.get("q", "").strip()
     qs = modelo.objects.all()
     if texto:
@@ -104,9 +109,20 @@ def _listado_origen(request, *, modelo, campos_texto, campo_numero, tabla, titul
         if texto.isdigit():
             filtro |= Q(**{campo_numero: int(texto)})
         qs = qs.filter(filtro)
+    # Con `campo_fecha`, por defecto solo los recientes (los sin fecha cuentan como viejos).
+    todos = campo_fecha is None or request.GET.get("todos") == "1"
+    ocultos = 0
+    if not todos:
+        desde = timezone.localdate() - timedelta(days=DIAS_PEDIDOS_RECIENTES)
+        recientes = Q(**{f"{campo_fecha}__gte": desde})
+        ocultos = qs.exclude(recientes).count()
+        qs = qs.filter(recientes)
     contexto = {
         "filas": list(qs[:LIMITE_LISTADO]),
         "q": texto,
+        "filtra_antiguedad": campo_fecha is not None,
+        "todos": todos,
+        "ocultos": ocultos,
         "titulo": titulo,
         "con_trabajo": est.refs_con_trabajo_activo(),
         "limite": LIMITE_LISTADO,
@@ -126,6 +142,7 @@ def pedidos(request):
         campo_numero="pedido_id",
         tabla="tabla_pedidos.html",
         titulo="Pedidos con pendiente",
+        campo_fecha="fecha_pedido",
     )
 
 

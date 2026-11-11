@@ -93,6 +93,22 @@ def test_lista_de_pedidos_y_busqueda(oficina, demo):
     assert b"<html" not in filtrada.content  # HTMX recibe solo la tabla
 
 
+def test_pedidos_de_mas_de_un_anio_se_ocultan_por_defecto(oficina, demo):
+    lista = oficina.get(reverse("oficina:pedidos")).content.decode()
+    assert "OC-VIEJA" not in lista
+    assert "Hay 1 pedido de más de un año" in lista and "todos=1" in lista
+
+    todos = oficina.get(reverse("oficina:pedidos"), {"todos": "1"}).content.decode()
+    assert "OC-VIEJA" in todos and "EJ-220/A" in todos
+    assert 'name="todos" value="1"' in todos  # la búsqueda conserva el filtro
+    assert "Ocultar los viejos" in todos
+
+    # La búsqueda también respeta el filtro, y avisa si lo buscado quedó oculto.
+    buscado = oficina.get(reverse("oficina:pedidos"), {"q": "2950"}).content.decode()
+    assert "OC-VIEJA" not in buscado and "Hay 1 pedido" in buscado
+    assert "q=2950&amp;todos=1" in buscado
+
+
 def test_lista_de_cotizaciones(oficina, demo):
     respuesta = oficina.get(reverse("oficina:cotizaciones"))
     assert b"SEP-08" in respuesta.content

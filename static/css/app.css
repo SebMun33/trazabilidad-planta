@@ -129,7 +129,7 @@ tr.anulado td:last-child { text-decoration: none; }
 .alerta-error { background: var(--error-fondo); color: var(--peligro); }
 .alerta-info, .alerta-warning { background: var(--info-fondo); color: var(--texto); }
 .vacio { padding: 2rem; text-align: center; color: var(--suave); background: var(--superficie); border: 1px dashed var(--borde); border-radius: var(--radio); }
-.origen, .nota { background: var(--superficie); border-left: 4px solid var(--primario); padding: .6rem 1rem; border-radius: var(--radio); }
+.origen, .nota, .aviso-antiguedad { background: var(--superficie); border-left: 4px solid var(--primario); padding: .6rem 1rem; border-radius: var(--radio); }
 .datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .75rem; margin: 1rem 0; }
 .datos div { background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--radio); padding: .6rem .8rem; }
 .datos dt { font-size: .8rem; color: var(--suave); }

@@ -5,6 +5,7 @@
 <form class="filtros" method="get" action="{{ request.path }}"
       hx-get="{{ request.path }}" hx-target="#tabla" hx-trigger="input changed delay:300ms" hx-push-url="true">
   <input type="search" name="q" value="{{ q }}" placeholder="Buscar plano, cliente o número" aria-label="Buscar">
+  {% if filtra_antiguedad and todos %}<input type="hidden" name="todos" value="1">{% endif %}
   <noscript><button class="boton">Buscar</button></noscript>
 </form>
 <div id="tabla">{% include tabla %}</div>

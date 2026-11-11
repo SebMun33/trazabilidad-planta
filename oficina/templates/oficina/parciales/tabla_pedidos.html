@@ -1,4 +1,11 @@
 {% load oficina %}
+{% if ocultos %}
+<p class="aviso-antiguedad">Hay {{ ocultos }} pedido{{ ocultos|pluralize }} de más de un año que sigue{{ ocultos|pluralize:"n" }} con pendiente en FoxPro (probablemente entregas sin cargar).
+  <a href="{{ request.path }}?{% if q %}q={{ q|urlencode }}&amp;{% endif %}todos=1">Ver todos</a></p>
+{% elif todos and filtra_antiguedad %}
+<p class="aviso-antiguedad">Mostrando también los pedidos de más de un año.
+  <a href="{{ request.path }}{% if q %}?q={{ q|urlencode }}{% endif %}">Ocultar los viejos</a></p>
+{% endif %}
 {% if filas %}
 <table class="tabla">
   <thead><tr><th>Pedido</th><th>OC</th><th>Fecha</th><th>Cliente</th><th>Plano</th><th class="num">Cant. pedida</th><th class="num">Entregado</th><th class="num">Pendiente</th><th></th></tr></thead>
