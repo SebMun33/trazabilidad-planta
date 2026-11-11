@@ -1,0 +1,23 @@
+# Postgres local para desarrollo y tests (mismo motor que Neon).
+# Las credenciales son SOLO de desarrollo local.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: planta
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./ops:/ops:ro
+      - ./ops/dev/docker-init.sh:/docker-entrypoint-initdb.d/10-planta.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d planta"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
