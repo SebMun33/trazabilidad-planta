@@ -1,0 +1,40 @@
+{% extends "kiosco/base.html" %}
+{% block titulo_kiosco %}Op. {{ op.nro }} · {{ t.plano }}{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1>Op. {{ op.nro }} · {{ t.plano }}</h1>
+    <p class="suave">{{ op.descripcion|default:"Sin descripción" }}</p>
+  </div>
+  <a class="boton" href="{% url 'kiosco:trabajo' operario_id t.trabajo_id %}" data-tecla="Escape"><kbd>Esc</kbd> Volver</a>
+</div>
+<p><span class="estado e-{{ op.estado }}">{{ op.etiqueta }}</span>
+  {% if quien %}<span class="suave">· la empezó {{ quien }}</span>{% endif %}</p>
+{% if op.observaciones %}<p class="nota"><strong>Observaciones de la operación:</strong> {{ op.observaciones }}</p>{% endif %}
+{% if t.observaciones %}<p class="nota"><strong>Observaciones del trabajo:</strong> {{ t.observaciones }}</p>{% endif %}
+
+{% if op.estado == "terminada" %}
+<p class="vacio">Esta operación ya está terminada.</p>
+{% else %}
+<form method="post" class="k-form">
+  {% csrf_token %}
+  <label class="campo"><span class="etiqueta">Máquina</span>
+    <select name="maquina_id">
+      <option value="">Sin asignar</option>
+      {% for id, nombre in maquinas %}<option value="{{ id }}" {% if id == op.maquina_id %}selected{% endif %}>{{ nombre }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="campo"><span class="etiqueta">Observaciones (opcional)</span>
+    <textarea name="observaciones" rows="2" maxlength="500"></textarea>
+  </label>
+  <div class="k-acciones">
+    {% if op.abierta %}
+      <button class="k-boton k-pausa" name="accion" value="pausado" data-tecla="p"><kbd>P</kbd> Pausé</button>
+      <button class="k-boton k-fin" name="accion" value="terminado" data-tecla="t"><kbd>T</kbd> Terminé</button>
+    {% else %}
+      <button class="k-boton k-inicio" name="accion" value="empezado" data-tecla="e"><kbd>E</kbd> Empecé</button>
+    {% endif %}
+  </div>
+</form>
+{% endif %}
+{% endblock %}

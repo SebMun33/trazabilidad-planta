@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
@@ -14,3 +15,7 @@ urlpatterns = [
     path("oficina/", include("oficina.urls")),
     path("admin/", admin.site.urls),
 ]
+
+# En desarrollo se ven las dos partes; en la nube, solo oficina.
+if settings.KIOSCO_HABILITADO:
+    urlpatterns.append(path("kiosco/", include("kiosco.urls")))

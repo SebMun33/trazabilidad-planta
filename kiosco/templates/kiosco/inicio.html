@@ -1,0 +1,16 @@
+{% extends "kiosco/base.html" %}
+{% block titulo_kiosco %}¿Quién sos?{% endblock %}
+{% block contenido %}
+<h1>¿Quién sos?</h1>
+<p class="suave">Tocá tu nombre o escribí su número.</p>
+{% if operarios %}
+<ol class="k-opciones">
+  {% for id, nombre in operarios %}
+  <li><a class="k-opcion" href="{% url 'kiosco:pendientes' id %}" data-numero="{{ forloop.counter }}">
+    <kbd>{{ forloop.counter }}</kbd> <span class="k-grande">{{ nombre }}</span></a></li>
+  {% endfor %}
+</ol>
+{% else %}
+<p class="vacio">No hay operarios cargados. Pedile a oficina que los dé de alta.</p>
+{% endif %}
+{% endblock %}

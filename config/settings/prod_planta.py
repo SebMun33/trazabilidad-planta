@@ -7,6 +7,10 @@ de forma explícita y documentada.
 
 from .prod import *
 
+# Esta PC solo sirve el kiosco (la oficina vive en la nube).
+ROOT_URLCONF = "config.urls_planta"
+KIOSCO_HABILITADO = True
+
 SILENCED_SYSTEM_CHECKS = [
     "security.W004",  # SECURE_HSTS_SECONDS: sin HTTPS en localhost
     "security.W008",  # SECURE_SSL_REDIRECT

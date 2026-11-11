@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titulo %}{% block titulo_kiosco %}Kiosco{% endblock %} · Planta{% endblock %}
+{% block cuerpo %}
+<div class="kiosco" data-inactividad="{{ inactividad }}" data-inicio="{% url 'kiosco:inicio' %}">
+  <header class="k-barra">
+    <a class="marca" href="{% url 'kiosco:inicio' %}">Planta</a>
+    {% if operario %}
+      <span class="k-operario">{{ operario }}</span>
+      <a class="boton" href="{% url 'kiosco:inicio' %}">Cambiar operario</a>
+    {% endif %}
+    <div class="k-estado" hx-get="{% url 'kiosco:estado' %}" hx-trigger="load, every 10s" aria-live="polite"></div>
+  </header>
+  <main class="k-contenido">
+    {% if deshacible %}
+    <form class="k-deshacer" method="post" action="{% url 'kiosco:deshacer' operario_id deshacible.evento_id %}" data-hasta="{{ deshacible_hasta_ms }}">
+      {% csrf_token %}
+      <span>Registrado: <strong>{{ deshacible_texto }}</strong></span>
+      <button class="boton" data-tecla="d"><kbd>D</kbd> Deshacer <span class="k-restante"></span></button>
+    </form>
+    {% endif %}
+    {% if error %}<p class="alerta alerta-error" role="alert">{{ error }}</p>{% endif %}
+    {% block contenido %}{% endblock %}
+  </main>
+</div>
+<script src="{% static 'js/kiosco.js' %}" defer></script>
+{% endblock %}

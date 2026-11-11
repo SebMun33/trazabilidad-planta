@@ -22,3 +22,6 @@ staticfiles/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Copia local del kiosco
+kiosco.sqlite3*

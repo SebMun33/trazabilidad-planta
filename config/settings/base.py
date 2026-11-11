@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "django_htmx",
     "planta",
     "oficina",
+    "kiosco",
 ]
 
 MIDDLEWARE = [
@@ -89,6 +90,15 @@ DATABASES["default"]["OPTIONS"].update(
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=60)
 DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 
+# Base `local` (SQLite): copia y cola del kiosco de planta, para seguir
+# registrando sin conexión. Solo la usan los modelos de `kiosco` (ver router).
+DATABASES["local"] = {
+    "ENGINE": "django.db.backends.sqlite3",
+    "NAME": env("KIOSCO_DB", default=str(BASE_DIR / "kiosco.sqlite3")),
+    "OPTIONS": {"timeout": 10},
+}
+DATABASE_ROUTERS = ["kiosco.router.KioscoRouter"]
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -128,3 +138,19 @@ LOGGING = {
 # --- Dominio -----------------------------------------------------------------
 # Identifica qué equipo grabó cada evento (columna `evento.dispositivo`).
 PLANTA_DISPOSITIVO = env("PLANTA_DISPOSITIVO", default="desarrollo")
+
+# --- Kiosco (parte B) ---------------------------------------------------------
+# Las pantallas del kiosco no piden contraseña: solo responden a estas IP (el
+# navegador de la misma PC). En la nube (oficina) el kiosco no se publica.
+KIOSCO_HABILITADO = env.bool("KIOSCO_HABILITADO", default=False)
+KIOSCO_IPS_PERMITIDAS = env.list("KIOSCO_IPS_PERMITIDAS", default=["127.0.0.1", "::1"])
+KIOSCO_DESHACER_SEGUNDOS = 60
+# Cada cuánto sincroniza el proceso de fondo y cuándo se considera vieja la copia.
+KIOSCO_SINCRONIZAR_CADA = env.int("KIOSCO_SINCRONIZAR_CADA", default=5)
+KIOSCO_COPIA_VIEJA_SEGUNDOS = env.int("KIOSCO_COPIA_VIEJA_SEGUNDOS", default=120)
+# Mientras el kiosco se usa, la copia local se renueva cada KIOSCO_COPIA_CADA
+# segundos; si nadie lo usa hace KIOSCO_ACTIVO_MINUTOS, no se consulta a Neon.
+KIOSCO_COPIA_CADA = env.int("KIOSCO_COPIA_CADA", default=60)
+KIOSCO_ACTIVO_MINUTOS = env.int("KIOSCO_ACTIVO_MINUTOS", default=10)
+# Sin actividad, vuelve a la pantalla de elegir operario.
+KIOSCO_INACTIVIDAD_SEGUNDOS = env.int("KIOSCO_INACTIVIDAD_SEGUNDOS", default=120)

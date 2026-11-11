@@ -1,0 +1,39 @@
+{% extends "kiosco/base.html" %}
+{% block titulo_kiosco %}Pendientes{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <h1>Pendientes</h1>
+  <a class="boton" href="{% url 'kiosco:inicio' %}" data-tecla="Escape"><kbd>Esc</kbd> Volver</a>
+</div>
+{% if hoy_cerrado %}<p class="alerta alerta-error">El día de hoy está cerrado: no se pueden registrar avances hasta que un supervisor lo reabra.</p>{% endif %}
+{% if mis_abiertas %}
+<p class="nota">Tenés en curso:
+  {% for t, op in mis_abiertas %}<a href="{% url 'kiosco:operacion' operario_id t.trabajo_id op.operacion_id %}">operación {{ op.nro }} de <strong>{{ t.plano }}</strong></a>{% if not forloop.last %}, {% endif %}{% endfor %}
+</p>
+{% endif %}
+{% if trabajos %}
+<ol class="k-opciones">
+  {% for t in trabajos %}
+  <li><a class="k-opcion k-trabajo" href="{% url 'kiosco:trabajo' operario_id t.trabajo_id %}" data-numero="{{ forloop.counter }}">
+    <kbd>{{ forloop.counter }}</kbd>
+    <span class="k-cuerpo">
+      <span class="k-linea">
+        <span class="urgencia u{{ t.urgencia }}">{{ t.urgencia_etiqueta }}</span>
+        <span class="k-grande">{{ t.plano }}</span>
+        {% if t.cantidad %}<span>· {{ t.cantidad|floatformat:"-2" }} piezas</span>{% endif %}
+        {% if t.fecha_entrega_estimada %}<span class="suave">· entrega {{ t.fecha_entrega_estimada|date:"d/m" }}</span>{% endif %}
+      </span>
+      <span class="suave">{{ t.plano_descripcion|default:"" }}{% if t.cliente %} · {{ t.cliente }}{% endif %}</span>
+      {% if t.observaciones %}<span class="k-obs">{{ t.observaciones }}</span>{% endif %}
+      <span class="k-linea">
+        <span class="estado e-{{ t.estado }}">{{ t.terminadas }}/{{ t.operaciones|length }} operaciones</span>
+        {% for op in t.abiertas %}<span class="estado e-en_proceso">Op. {{ op.nro }} en proceso{% if op.operario_nombre %} · {{ op.operario_nombre }}{% endif %}</span>{% endfor %}
+      </span>
+    </span>
+  </a></li>
+  {% endfor %}
+</ol>
+{% else %}
+<p class="vacio">No hay trabajos pendientes.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "kiosco/base.html" %}
+{% block titulo_kiosco %}Esperando datos{% endblock %}
+{% block contenido %}
+<div class="vacio">
+  <h1>Esperando la primera sincronización</h1>
+  <p>El kiosco todavía no recibió la lista de pendientes. Revisá que esta PC tenga conexión;
+     la pantalla se actualiza sola.</p>
+</div>
+<meta http-equiv="refresh" content="10">
+{% endblock %}

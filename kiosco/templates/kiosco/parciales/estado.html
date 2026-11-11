@@ -1,0 +1,13 @@
+{% if planta %}
+  {% if planta.copia_vieja %}
+    <span class="estado e-pausada" title="Los cambios de oficina pueden tardar en verse">Lista actualizada {{ planta.obtenida_en|date:"d/m H:i" }}</span>
+  {% else %}
+    <span class="suave">Lista al {{ planta.obtenida_en|time:"H:i" }}</span>
+  {% endif %}
+{% endif %}
+{% if sin_enviar %}
+  <span class="estado e-en_proceso">{{ sin_enviar }} pendiente{{ sin_enviar|pluralize }} de envío</span>
+{% else %}
+  <span class="estado e-terminada">Todo enviado</span>
+{% endif %}
+{% if rechazados %}<span class="estado u3">{{ rechazados }} con error: avisá a oficina</span>{% endif %}

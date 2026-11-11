@@ -144,6 +144,50 @@ tr.anulado td:last-child { text-decoration: none; }
 .login { min-height: 100vh; display: grid; place-items: center; padding: 1rem; }
 .login .tarjeta { width: 100%; max-width: 24rem; margin: 0; }
 
+/* --- Kiosco de planta: letra grande, todo se usa con mouse o teclado --- */
+.kiosco { font-size: 1.15rem; min-height: 100vh; }
+.k-barra {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem;
+  padding: .75rem 1.25rem; background: var(--superficie); border-bottom: 1px solid var(--borde);
+}
+.k-operario { font-weight: 700; font-size: 1.25rem; }
+.k-estado { margin-left: auto; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; font-size: .95rem; }
+.k-contenido { max-width: 1100px; margin: 0 auto; padding: 1.25rem 1.25rem 4rem; }
+.kiosco h1 { font-size: 2rem; }
+kbd {
+  display: inline-block; min-width: 1.8em; padding: .05em .4em; border: 1px solid var(--borde);
+  border-bottom-width: 3px; border-radius: 5px; background: var(--fondo); color: var(--texto);
+  font: 600 .85em/1.4 ui-monospace, "Cascadia Mono", Consolas, monospace; text-align: center;
+}
+.k-opciones { list-style: none; padding: 0; margin: 0; display: grid; gap: .6rem; }
+.k-opcion {
+  display: flex; align-items: flex-start; gap: 1rem; padding: .9rem 1.1rem;
+  background: var(--superficie); border: 2px solid var(--borde); border-radius: 10px;
+  color: var(--texto); text-decoration: none;
+}
+.k-opcion:hover, .k-opcion:focus-visible { border-color: var(--primario); }
+.k-opcion > kbd { font-size: 1.1rem; margin-top: .15rem; }
+.k-cuerpo { display: grid; gap: .3rem; flex: 1; }
+.k-linea { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .75rem; }
+.k-grande { font-size: 1.4rem; font-weight: 700; }
+.k-obs { border-left: 4px solid var(--aviso); padding-left: .6rem; }
+.k-form { display: grid; gap: 1rem; max-width: 40rem; margin-top: 1rem; }
+.k-acciones { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: .5rem; }
+.k-boton {
+  display: inline-flex; align-items: center; gap: .6rem; padding: 1rem 1.6rem;
+  border-radius: 10px; border: 2px solid var(--borde); background: var(--superficie);
+  color: var(--texto); font: inherit; font-size: 1.35rem; font-weight: 700; cursor: pointer; text-decoration: none;
+}
+.k-inicio { background: var(--primario); border-color: var(--primario); color: var(--primario-texto); }
+.k-pausa { background: var(--aviso-fondo); border-color: var(--aviso); color: var(--aviso); }
+.k-fin { background: var(--ok-fondo); border-color: var(--ok); color: var(--ok); }
+.k-deshacer {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem;
+  padding: .7rem 1rem; margin-bottom: 1rem; border-radius: var(--radio);
+  background: var(--ok-fondo); color: var(--ok);
+}
+.k-confirmar { max-width: 40rem; margin: 2rem auto; }
+
 @media (max-width: 760px) {
   .tabla { display: block; overflow-x: auto; }
 }
