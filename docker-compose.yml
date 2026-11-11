@@ -2,7 +2,7 @@
 # Las credenciales son SOLO de desarrollo local.
 services:
   db:
-    image: postgres:17
+    image: postgres:18
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
       - ./ops:/ops:ro
       - ./ops/dev/docker-init.sh:/docker-entrypoint-initdb.d/10-planta.sh:ro
     healthcheck:
