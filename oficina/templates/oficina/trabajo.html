@@ -1,0 +1,96 @@
+{% extends "oficina/base.html" %}
+{% load oficina %}
+{% block titulo %}{{ t.revision.plano }} · Trazabilidad de planta{% endblock %}
+{% block contenido %}
+{% with r=t.revision %}
+<div class="encabezado">
+  <div>
+    <h1>{{ r.plano }} <span class="estado e-{{ t.estado }}">{{ t.etiqueta }}</span></h1>
+    {% if r.plano_descripcion %}<p class="suave">{{ r.plano_descripcion }}</p>{% endif %}
+  </div>
+  {% if t.estado != "retirado" %}
+  <div class="acciones-encabezado">
+    <a class="boton boton-primario" href="{% url 'oficina:trabajo_revisar' t.trabajo_id %}">Revisar</a>
+  </div>
+  {% endif %}
+</div>
+
+<dl class="datos">
+  <div><dt>Urgencia</dt><dd><span class="urgencia u{{ r.urgencia }}">{{ t.urgencia_etiqueta }}</span></dd></div>
+  <div><dt>Entrega estimada</dt><dd>{{ r.fecha_entrega_estimada|date:"d/m/Y"|default:"—" }}</dd></div>
+  <div><dt>Cliente</dt><dd>{{ r.cliente_nombre|default:"—" }}</dd></div>
+  <div><dt>Cantidad</dt><dd>{% if r.cantidad %}{{ r.cantidad|floatformat:"-2" }}{% else %}—{% endif %}</dd></div>
+  <div><dt>Origen</dt><dd>{{ r.get_origen_display }}{% if r.pedido_id %} · pedido {{ r.pedido_id }}{% endif %}{% if r.cotizacion_id %} · cotización {{ r.cotizacion_id }}{% endif %}</dd></div>
+  <div><dt>Revisión vigente</dt><dd>{{ r.revision }} · {{ r.creado_por }} · {{ r.creado_en|date:"d/m/Y H:i" }}</dd></div>
+</dl>
+{% if r.observaciones %}<p class="nota"><strong>Observaciones:</strong> {{ r.observaciones|linebreaksbr }}</p>{% endif %}
+{% endwith %}
+
+<h2>Operaciones · {{ t.terminadas }} de {{ t.operaciones|length }} terminadas</h2>
+<table class="tabla">
+  <thead><tr><th>N.º</th><th>Máquina</th><th>Proceso</th><th>Observaciones</th><th>Estado</th><th>Último registro</th></tr></thead>
+  <tbody>
+  {% for op in t.operaciones %}
+    <tr>
+      <td>{{ op.operacion.operacion_nro }}</td>
+      <td>{% if op.maquina %}{{ op.maquina.nombre }}{% elif op.operacion.maquina_id %}Máquina {{ op.operacion.maquina_id }}{% else %}—{% endif %}</td>
+      <td>{{ op.operacion.descripcion|default:"—" }}</td>
+      <td>{{ op.operacion.observaciones|default:"" }}</td>
+      <td><span class="estado e-{{ op.estado }}">{{ op.etiqueta }}</span></td>
+      <td>{% if op.ultimo_evento %}{{ op.ultimo_evento.ocurrido_en|date:"d/m H:i" }} · {{ op.ultimo_evento.operario }}{% else %}—{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h2>Registros de planta</h2>
+{% if eventos %}
+<table class="tabla">
+  <thead><tr><th>Cuándo</th><th>Tipo</th><th>Operación</th><th>Operario</th><th>Observaciones</th><th></th></tr></thead>
+  <tbody>
+  {% for e in eventos %}
+    {% with op=operaciones|obtener:e.operacion_id %}
+    <tr class="{% if e.evento_id in anulados %}anulado{% endif %}">
+      <td>{{ e.ocurrido_en|date:"d/m/Y H:i" }}</td>
+      <td>{{ e.get_tipo_display }}{% if e.tipo == "anulacion" %} de «{{ e.anula_evento.get_tipo_display }}» ({{ e.registrado_por }}){% endif %}</td>
+      <td>{% if op %}{{ op.operacion.operacion_nro }}{% else %}<span class="suave">quitada</span>{% endif %}</td>
+      <td>{{ e.operario|default:"—" }}</td>
+      <td>{{ e.observaciones|default:"" }}</td>
+      <td>{% if e.tipo != "anulacion" and e.evento_id not in anulados %}
+        <form method="post" action="{% url 'oficina:evento_anular' e.evento_id %}" class="en-linea">
+          {% csrf_token %}<input type="hidden" name="volver" value="{{ request.get_full_path }}">
+          <input name="motivo" placeholder="Motivo" aria-label="Motivo de la anulación">
+          <button class="boton boton-peligro">Anular</button>
+        </form>{% elif e.evento_id in anulados %}<span class="suave">Anulado</span>{% endif %}</td>
+    </tr>
+    {% endwith %}
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vacio">Todavía no hay registros de planta para este trabajo.</p>
+{% endif %}
+
+<h2>Historial de revisiones</h2>
+<table class="tabla">
+  <thead><tr><th>Rev.</th><th>Tipo</th><th>Quién</th><th>Cuándo</th><th>Urgencia</th><th>Entrega est.</th><th>Observaciones</th></tr></thead>
+  <tbody>
+  {% for rev in revisiones %}
+    <tr><td>{{ rev.revision }}</td><td>{{ rev.get_tipo_display }}</td><td>{{ rev.creado_por }}</td><td>{{ rev.creado_en|date:"d/m/Y H:i" }}</td>
+        <td>{{ rev.get_urgencia_display }}</td><td>{{ rev.fecha_entrega_estimada|date:"d/m/Y"|default:"—" }}</td><td>{{ rev.observaciones|default:"" }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% if t.estado != "retirado" %}
+<details class="zona-peligro">
+  <summary>Retirar de la lista de pendientes</summary>
+  <form method="post" action="{% url 'oficina:trabajo_retirar' t.trabajo_id %}">
+    {% csrf_token %}
+    <label>Motivo <input name="motivo" required placeholder="Ej.: el cliente canceló el pedido"></label>
+    <button class="boton boton-peligro">Retirar trabajo</button>
+    <p class="suave">El trabajo queda en el historial; los registros de planta no se borran.</p>
+  </form>
+</details>
+{% endif %}
+{% endblock %}

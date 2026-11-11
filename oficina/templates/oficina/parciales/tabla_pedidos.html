@@ -1,0 +1,25 @@
+{% load oficina %}
+{% if filas %}
+<table class="tabla">
+  <thead><tr><th>Pedido</th><th>OC</th><th>Fecha</th><th>Cliente</th><th>Plano</th><th class="num">Cant. pedida</th><th class="num">Entregado</th><th class="num">Pendiente</th><th></th></tr></thead>
+  <tbody>
+  {% for p in filas %}
+    <tr>
+      <td>{{ p.pedido_id }}</td>
+      <td>{{ p.orden_compra|default:"—" }}</td>
+      <td>{{ p.fecha_pedido|date:"d/m/Y" }}</td>
+      <td>{{ p.cliente|default:"—" }}</td>
+      <td><strong>{{ p.plano }}</strong>{% if p.plano_descripcion %}<br><span class="suave">{{ p.plano_descripcion }}</span>{% endif %}</td>
+      <td class="num">{{ p.cantidad_pedida|floatformat:"-2" }}</td>
+      <td class="num">{{ p.cantidad_entregada|floatformat:"-2" }}</td>
+      <td class="num"><strong>{{ p.cantidad_pendiente|floatformat:"-2" }}</strong></td>
+      <td>{% if con_trabajo|contiene:p.pk %}<span class="estado e-en_cola">En pendientes</span>
+          {% else %}<a class="boton" href="{% url 'oficina:trabajo_nuevo' %}?origen=pedido&amp;ref={{ p.pk|urlencode }}">Preparar</a>{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if filas|length >= limite %}<p class="suave">Se muestran los primeros {{ limite }}. Usá la búsqueda para acotar.</p>{% endif %}
+{% else %}
+<p class="vacio">No hay pedidos con pendiente{% if q %} para «{{ q }}»{% endif %}.</p>
+{% endif %}

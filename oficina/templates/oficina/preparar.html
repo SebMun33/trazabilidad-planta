@@ -1,0 +1,16 @@
+{% extends "oficina/base.html" %}
+{% block titulo %}{{ titulo }} · Trazabilidad de planta{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <h1>{{ titulo }}</h1>
+  {% if t %}<a href="{% url 'oficina:trabajo' t.trabajo_id %}">Volver al trabajo</a>{% endif %}
+</div>
+{% if pedido %}
+<p class="origen">Desde el pedido <strong>{{ pedido.pedido_id }}</strong>{% if pedido.orden_compra %} (orden de compra {{ pedido.orden_compra }}){% endif %} · pendiente {{ pedido.cantidad_pendiente|floatformat:"-2" }}</p>
+{% elif cotizacion %}
+<p class="origen">Desde la cotización <strong>{{ cotizacion.cotizacion_id }}</strong> del {{ cotizacion.fecha_cotizacion|date:"d/m/Y" }}. Todavía no hay pedido en FoxPro.</p>
+{% elif not t %}
+<p class="origen">Carga manual: para trabajos que todavía no están en FoxPro.</p>
+{% endif %}
+<div id="form-trabajo">{% include "oficina/parciales/form_trabajo.html" %}</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "oficina/base.html" %}
+{% load oficina %}
+{% block titulo %}Registros · Trazabilidad de planta{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <h1>Registros del {{ fecha|date:"l d/m/Y" }}</h1>
+  <form method="get" class="filtros">
+    <input type="date" name="fecha" value="{{ fecha|date:'Y-m-d' }}" aria-label="Fecha">
+    <button class="boton">Ver</button>
+  </form>
+</div>
+{% if resumen.cerrado %}<p class="alerta alerta-info">Día cerrado por {{ resumen.cierre.registrado_por }} el {{ resumen.cierre.registrado_en|date:"d/m H:i" }}. Para anular registros, un supervisor tiene que reabrirlo.</p>{% endif %}
+
+<ul class="resumen">
+  <li><strong>{{ resumen.por_tipo.empezado|default:0 }}</strong> empezados</li>
+  <li><strong>{{ resumen.por_tipo.pausado|default:0 }}</strong> pausados</li>
+  <li><strong>{{ resumen.por_tipo.terminado|default:0 }}</strong> terminados</li>
+  <li><strong>{{ resumen.anulados|length }}</strong> anulados</li>
+</ul>
+
+{% if eventos %}
+<table class="tabla">
+  <thead><tr><th>Hora</th><th>Tipo</th><th>Trabajo</th><th>Operario</th><th>Máquina</th><th>Observaciones</th><th></th></tr></thead>
+  <tbody>
+  {% for e in eventos %}
+    {% with r=revisiones|obtener:e.trabajo_id %}
+    <tr class="{% if e.evento_id in resumen.anulados %}anulado{% endif %}">
+      <td>{{ e.ocurrido_en|date:"H:i" }}</td>
+      <td>{{ e.get_tipo_display }}{% if e.tipo == "anulacion" %} <span class="suave">({{ e.registrado_por }})</span>{% endif %}</td>
+      <td>{% if r %}<a href="{% url 'oficina:trabajo' e.trabajo_id %}">{{ r.plano }}</a>{% endif %}</td>
+      <td>{{ e.operario|default:"—" }}</td>
+      <td>{{ e.maquina_id|default:"—" }}</td>
+      <td>{{ e.observaciones|default:"" }}</td>
+      <td>{% if e.tipo != "anulacion" and e.evento_id not in resumen.anulados and not resumen.cerrado %}
+        <form method="post" action="{% url 'oficina:evento_anular' e.evento_id %}" class="en-linea">
+          {% csrf_token %}<input type="hidden" name="volver" value="{{ request.get_full_path }}">
+          <input name="motivo" placeholder="Motivo" aria-label="Motivo de la anulación">
+          <button class="boton boton-peligro">Anular</button>
+        </form>{% elif e.evento_id in resumen.anulados %}<span class="suave">Anulado</span>{% endif %}</td>
+    </tr>
+    {% endwith %}
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vacio">No hay registros en esta fecha.</p>
+{% endif %}
+{% endblock %}

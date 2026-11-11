@@ -1,0 +1,55 @@
+{% load oficina %}
+<form method="post" action="{{ accion_url }}" class="form-trabajo">
+  {% csrf_token %}
+  {% if revision_base %}<input type="hidden" name="revision_base" value="{{ revision_base }}">{% endif %}
+  {% for error in form.non_field_errors %}<p class="alerta alerta-error">{{ error }}</p>{% endfor %}
+
+  <fieldset class="grilla">
+    <legend>Datos del trabajo</legend>
+    {% for campo in form %}
+      {% if campo.name == "urgencia" %}
+      <div class="campo campo-ancho">
+        <span class="etiqueta">Urgencia</span>
+        <div class="opciones-urgencia">{% for radio in campo %}<label class="u{{ radio.data.value }}">{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}</div>
+      </div>
+      {% else %}
+      <div class="campo {% if campo.name == 'observaciones' %}campo-ancho{% endif %}">
+        <label for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+        {{ campo }}
+        {% if campo.help_text %}<small class="suave">{{ campo.help_text }}</small>{% endif %}
+        {% for e in campo.errors %}<small class="error">{{ e }}</small>{% endfor %}
+      </div>
+      {% endif %}
+    {% endfor %}
+  </fieldset>
+
+  <fieldset>
+    <legend>Operaciones (hoja de ruta)</legend>
+    {% if ruta_sugerida %}<p class="suave">Precargada desde la hoja de ruta del plano en FoxPro. Se puede cambiar.</p>{% endif %}
+    {{ formset.management_form }}
+    {% for e in formset.non_form_errors %}<p class="alerta alerta-error">{{ e }}</p>{% endfor %}
+    <table class="tabla tabla-ops">
+      <thead><tr><th>N.º</th><th>Máquina</th><th>Proceso</th><th>Observaciones</th><th>Quitar</th></tr></thead>
+      <tbody>
+      {% for f in formset %}
+        <tr>
+          <td>{{ forloop.counter }}{{ f.operacion_id }}</td>
+          <td>{{ f.maquina_id }}{% for e in f.maquina_id.errors %}<small class="error">{{ e }}</small>{% endfor %}</td>
+          <td>{{ f.descripcion }}</td>
+          <td>{{ f.observaciones }}</td>
+          <td>{% if con_registros|contiene:f.operacion_id.value %}<span class="suave" title="Tiene registros de planta">Con registros</span>{% else %}{{ f.DELETE }}{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {# Sin JS hace un POST normal; con HTMX solo reemplaza el formulario. #}
+    <button type="submit" name="accion" value="agregar" class="boton"
+            hx-post="{{ accion_url }}" hx-target="#form-trabajo">+ Agregar operación</button>
+  </fieldset>
+
+  <div class="acciones">
+    <button type="submit" name="accion" value="guardar" class="boton boton-primario">
+      {% if revision_base %}Guardar revisión {{ revision_base|add:1 }}{% else %}Enviar a pendientes{% endif %}
+    </button>
+  </div>
+</form>

@@ -1,0 +1,22 @@
+{% load oficina %}
+{% if filas %}
+<table class="tabla">
+  <thead><tr><th>Cotización</th><th>Fecha</th><th>Cliente</th><th>Plano</th><th class="num">Cantidad</th><th></th></tr></thead>
+  <tbody>
+  {% for c in filas %}
+    <tr>
+      <td>{{ c.cotizacion_id }}</td>
+      <td>{{ c.fecha_cotizacion|date:"d/m/Y" }}</td>
+      <td>{{ c.cliente|default:"—" }}</td>
+      <td><strong>{{ c.plano }}</strong>{% if c.plano_descripcion %}<br><span class="suave">{{ c.plano_descripcion }}</span>{% endif %}</td>
+      <td class="num">{{ c.cantidad|floatformat:"-2" }}</td>
+      <td>{% if con_trabajo|contiene:c.pk %}<span class="estado e-en_cola">En pendientes</span>
+          {% else %}<a class="boton" href="{% url 'oficina:trabajo_nuevo' %}?origen=cotizacion&amp;ref={{ c.pk|urlencode }}">Preparar</a>{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if filas|length >= limite %}<p class="suave">Se muestran las primeras {{ limite }}. Usá la búsqueda para acotar.</p>{% endif %}
+{% else %}
+<p class="vacio">No hay cotizaciones sin pedido{% if q %} para «{{ q }}»{% endif %}.</p>
+{% endif %}

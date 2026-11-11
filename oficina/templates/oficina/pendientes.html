@@ -1,0 +1,18 @@
+{% extends "oficina/base.html" %}
+{% block titulo %}Pendientes · Trazabilidad de planta{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <h1>Lista de pendientes</h1>
+  <a class="boton boton-primario" href="{% url 'oficina:trabajo_nuevo' %}?origen=manual">+ Trabajo manual</a>
+</div>
+<form class="filtros" method="get" action="{% url 'oficina:pendientes' %}"
+      hx-get="{% url 'oficina:pendientes' %}" hx-target="#tabla" hx-push-url="true"
+      hx-trigger="input changed delay:300ms from:find input, change from:find select">
+  <input type="search" name="q" value="{{ q }}" placeholder="Buscar plano, cliente o pedido" aria-label="Buscar">
+  <select name="estado" aria-label="Estado">
+    {% for clave, etiqueta in filtros.items %}<option value="{{ clave }}" {% if clave == filtro %}selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+  </select>
+  <noscript><button class="boton">Filtrar</button></noscript>
+</form>
+<div id="tabla">{% include "oficina/parciales/tabla_pendientes.html" %}</div>
+{% endblock %}

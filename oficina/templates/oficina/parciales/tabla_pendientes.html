@@ -1,0 +1,22 @@
+{% if trabajos %}
+<table class="tabla">
+  <thead><tr><th>Urgencia</th><th>Plano</th><th>Cliente</th><th>Pedido</th><th class="num">Cant.</th><th>Entrega est.</th><th>Avance</th><th>Estado</th></tr></thead>
+  <tbody>
+  {% for t in trabajos %}
+    <tr>
+      <td><span class="urgencia u{{ t.revision.urgencia }}">{{ t.urgencia_etiqueta }}</span></td>
+      <td><a href="{% url 'oficina:trabajo' t.trabajo_id %}"><strong>{{ t.revision.plano }}</strong></a>
+        {% if t.revision.plano_descripcion %}<br><span class="suave">{{ t.revision.plano_descripcion }}</span>{% endif %}</td>
+      <td>{{ t.revision.cliente_nombre|default:"—" }}</td>
+      <td>{% if t.revision.pedido_id %}{{ t.revision.pedido_id }}{% elif t.revision.cotizacion_id %}<span class="suave">Cot. {{ t.revision.cotizacion_id }}</span>{% else %}—{% endif %}</td>
+      <td class="num">{% if t.revision.cantidad %}{{ t.revision.cantidad|floatformat:"-2" }}{% else %}—{% endif %}</td>
+      <td>{{ t.revision.fecha_entrega_estimada|date:"d/m/Y"|default:"—" }}</td>
+      <td>{{ t.terminadas }} de {{ t.operaciones|length }}</td>
+      <td><span class="estado e-{{ t.estado }}">{{ t.etiqueta }}</span></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vacio">No hay trabajos con este filtro.</p>
+{% endif %}

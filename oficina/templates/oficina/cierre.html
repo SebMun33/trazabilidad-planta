@@ -1,0 +1,50 @@
+{% extends "oficina/base.html" %}
+{% block titulo %}Cierre del día · Trazabilidad de planta{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <h1>Cierre del {{ fecha|date:"l d/m/Y" }}</h1>
+  <form method="get" class="filtros">
+    <input type="date" name="fecha" value="{{ fecha|date:'Y-m-d' }}" max="{{ hoy|date:'Y-m-d' }}" aria-label="Fecha">
+    <button class="boton">Ver</button>
+  </form>
+</div>
+
+<ul class="resumen">
+  <li><strong>{{ resumen.por_tipo.empezado|default:0 }}</strong> empezados</li>
+  <li><strong>{{ resumen.por_tipo.pausado|default:0 }}</strong> pausados</li>
+  <li><strong>{{ resumen.por_tipo.terminado|default:0 }}</strong> terminados</li>
+  <li><strong>{{ resumen.anulados|length }}</strong> anulados</li>
+</ul>
+<p><a href="{% url 'oficina:registros' %}?fecha={{ fecha|date:'Y-m-d' }}">Ver los registros de este día</a></p>
+
+<h2>Operaciones abiertas ahora</h2>
+{% if resumen.abiertas %}
+<p class="suave">No bloquean el cierre: pueden seguir al día siguiente.</p>
+<table class="tabla">
+  <thead><tr><th>Trabajo</th><th>Operación</th><th>Operario</th><th>Desde</th></tr></thead>
+  <tbody>
+  {% for t, op in resumen.abiertas %}
+    <tr><td><a href="{% url 'oficina:trabajo' t.trabajo_id %}">{{ t.revision.plano }}</a></td>
+        <td>{{ op.operacion.operacion_nro }} · {{ op.operacion.descripcion|default:"" }}</td>
+        <td>{{ op.ultimo_evento.operario }}</td><td>{{ op.ultimo_evento.ocurrido_en|date:"d/m H:i" }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vacio">No hay operaciones en proceso.</p>
+{% endif %}
+
+<form method="post" class="tarjeta">
+  {% csrf_token %}
+  <input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
+  {% if resumen.cerrado %}
+    <p class="alerta alerta-info">Cerrado por {{ resumen.cierre.registrado_por }} el {{ resumen.cierre.registrado_en|date:"d/m/Y H:i" }}.
+      {% if resumen.cierre.observaciones %}«{{ resumen.cierre.observaciones }}»{% endif %}</p>
+    <label>Motivo de la reapertura <input name="observaciones" required></label>
+    <button name="accion" value="reabrir" class="boton">Reabrir el día</button>
+  {% else %}
+    <label>Observaciones (opcional) <input name="observaciones"></label>
+    <button name="accion" value="cerrar" class="boton boton-primario">Validar y cerrar el día</button>
+  {% endif %}
+</form>
+{% endblock %}

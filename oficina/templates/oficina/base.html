@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block cuerpo %}
+<header class="barra">
+  <a class="marca" href="{% url 'oficina:pendientes' %}">Trazabilidad de planta</a>
+  <nav aria-label="Secciones">
+    {% with u=request.resolver_match.url_name %}
+    <a href="{% url 'oficina:pendientes' %}" {% if u == 'pendientes' %}aria-current="page"{% endif %}>Pendientes</a>
+    <a href="{% url 'oficina:pedidos' %}" {% if u == 'pedidos' %}aria-current="page"{% endif %}>Pedidos</a>
+    <a href="{% url 'oficina:cotizaciones' %}" {% if u == 'cotizaciones' %}aria-current="page"{% endif %}>Cotizaciones</a>
+    <a href="{% url 'oficina:registros' %}" {% if u == 'registros' %}aria-current="page"{% endif %}>Registros</a>
+    {% if es_supervisor %}<a href="{% url 'oficina:cierre' %}" {% if u == 'cierre' %}aria-current="page"{% endif %}>Cierre del día</a>{% endif %}
+    {% endwith %}
+  </nav>
+  <div class="usuario">
+    <span>{{ request.user.get_username }}</span>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="boton-link">Salir</button></form>
+  </div>
+</header>
+<p class="publicacion">
+  {% if ultima_publicacion %}Pedidos actualizados: {{ ultima_publicacion|date:"d/m/Y H:i" }}
+  {% else %}Todavía no hay datos publicados desde FoxPro.{% endif %}
+</p>
+<main class="contenido">
+  {% for m in messages %}<p class="alerta alerta-{{ m.tags }}" role="status">{{ m }}</p>{% endfor %}
+  {% block contenido %}{% endblock %}
+</main>
+{% endblock %}
