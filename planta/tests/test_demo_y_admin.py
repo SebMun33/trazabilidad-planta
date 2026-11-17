@@ -60,3 +60,34 @@ def test_middleware_muestra_503_si_la_base_no_responde():
     respuesta = middleware.process_exception(RequestFactory().get("/"), OperationalError("x"))
     assert respuesta.status_code == 503
     assert "no responde" in respuesta.content.decode()
+
+
+# --- despliegue ----------------------------------------------------------------
+def test_salud_responde_sin_base_ni_host_valido(client, django_assert_num_queries):
+    with django_assert_num_queries(0):
+        respuesta = client.get("/salud/", HTTP_HOST="interno.render")
+    assert respuesta.status_code == 200 and respuesta.content == b"ok"
+
+
+def test_oficina_agrega_host_de_render_y_origenes_csrf():
+    # En un proceso aparte: los settings se calculan al importarse.
+    import json
+    import os
+    import subprocess
+    import sys
+
+    entorno = {
+        **os.environ,
+        "RENDER_EXTERNAL_HOSTNAME": "trazabilidad.onrender.com",
+        "DJANGO_ALLOWED_HOSTS": "planta.ejemplo.com.ar",
+    }
+    codigo = (
+        "import json, config.settings.prod_oficina as s;"
+        "print(json.dumps([s.ALLOWED_HOSTS, s.CSRF_TRUSTED_ORIGINS]))"
+    )
+    salida = subprocess.run(  # noqa: S603 - comando fijo, sin entrada externa
+        [sys.executable, "-c", codigo], env=entorno, capture_output=True, text=True, check=True
+    )
+    hosts, origenes = json.loads(salida.stdout.strip().splitlines()[-1])
+    assert hosts == ["planta.ejemplo.com.ar", "trazabilidad.onrender.com"]
+    assert origenes == ["https://planta.ejemplo.com.ar", "https://trazabilidad.onrender.com"]

@@ -25,3 +25,6 @@ Thumbs.db
 
 # Copia local del kiosco
 kiosco.sqlite3*
+
+# uv en Render
+.uv-python/

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Kiosco de planta
+Comment=Abre el kiosco en pantalla completa al iniciar la sesión
+Exec=/opt/trazabilidad-planta/deploy/planta/abrir-kiosco.sh
+X-GNOME-Autostart-enabled=true

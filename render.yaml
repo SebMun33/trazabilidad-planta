@@ -1,0 +1,39 @@
+# Blueprint de Render para la parte A (oficina). Ver docs/despliegue_oficina.md.
+# Los secretos no van acá: DATABASE_URL y el dominio se cargan en el panel de
+# Render (sync: false) y la SECRET_KEY la genera Render.
+services:
+  - type: web
+    name: trazabilidad-planta-oficina
+    runtime: python
+    plan: free
+    # La más cercana a Neon sa-east-1 (São Paulo).
+    region: virginia
+    branch: main
+    autoDeploy: true
+    buildCommand: >-
+      pip install --upgrade uv &&
+      uv sync --frozen --no-dev &&
+      uv run --no-sync python manage.py collectstatic --noinput
+    startCommand: >-
+      .venv/bin/gunicorn config.wsgi:application
+      --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --access-logfile -
+    healthCheckPath: /salud/
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod_oficina
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      # Conexión directa de Neon (sin -pooler) con el rol app_planta.
+      - key: DATABASE_URL
+        sync: false
+      # Dominio propio, p. ej. planta.midominio.com.ar (el de onrender.com se agrega solo).
+      - key: DJANGO_ALLOWED_HOSTS
+        sync: false
+      - key: PLANTA_DISPOSITIVO
+        value: oficina
+      # Sin conexiones ociosas: Neon puede suspender el cómputo entre usos.
+      - key: DB_CONN_MAX_AGE
+        value: "0"
+      # uv instala Python 3.12 dentro del proyecto, así queda disponible al arrancar.
+      - key: UV_PYTHON_INSTALL_DIR
+        value: /opt/render/project/src/.uv-python

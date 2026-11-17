@@ -3,9 +3,28 @@
 import logging
 
 from django.db import OperationalError
+from django.http import HttpResponse
 from django.shortcuts import render
 
 logger = logging.getLogger(__name__)
+
+
+class SaludMiddleware:
+    """Responde `/salud/` antes que todo lo demás, sin tocar la base.
+
+    Lo usa el chequeo de salud del hosting: no pasa por la redirección a HTTPS
+    ni por la validación de host, y no despierta a Neon.
+    """
+
+    RUTA = "/salud/"
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.path == self.RUTA:
+            return HttpResponse("ok", content_type="text/plain")
+        return self.get_response(request)
 
 
 class BaseNoDisponibleMiddleware:

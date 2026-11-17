@@ -1,0 +1,11 @@
+[Unit]
+Description=Backup diario de trazabilidad de planta
+
+[Timer]
+OnCalendar=*-*-* 21:00
+# Si la PC estaba apagada a esa hora, corre al prenderse.
+Persistent=true
+RandomizedDelaySec=10min
+
+[Install]
+WantedBy=timers.target

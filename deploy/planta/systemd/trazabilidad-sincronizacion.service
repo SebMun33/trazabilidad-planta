@@ -1,0 +1,23 @@
+[Unit]
+Description=Trazabilidad de planta: envía la cola del kiosco y renueva la copia local
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=trazabilidad
+Group=trazabilidad
+WorkingDirectory=/opt/trazabilidad-planta
+EnvironmentFile=/etc/trazabilidad-planta/planta.env
+ExecStart=/opt/trazabilidad-planta/.venv/bin/python manage.py sincronizar_kiosco
+Restart=always
+RestartSec=10
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/trazabilidad-planta
+
+[Install]
+WantedBy=multi-user.target
