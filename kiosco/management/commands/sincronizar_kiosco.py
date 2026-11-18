@@ -23,7 +23,8 @@ class Command(BaseCommand):
         if una_vez:
             r = sincronizar(forzar_copia=forzar_copia)
             self.stdout.write(
-                f"Enviados: {r.enviados} · rechazados: {r.rechazados} · "
+                f"Enviados: {r.enviados} · notas: {r.notas_enviadas} · "
+                f"rechazados: {r.rechazados} · "
                 f"copia renovada: {'sí' if r.copia_renovada else 'no'}"
                 + (" · SIN CONEXIÓN" if r.sin_conexion else "")
             )

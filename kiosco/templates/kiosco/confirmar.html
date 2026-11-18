@@ -8,6 +8,7 @@
   <input type="hidden" name="accion" value="{{ datos.accion }}">
   <input type="hidden" name="maquina_id" value="{{ datos.maquina_id|default_if_none:'' }}">
   <input type="hidden" name="observaciones" value="{{ datos.observaciones }}">
+  <input type="hidden" name="operario" value="{{ datos.operario_id }}">
   <input type="hidden" name="confirmado" value="1">
   <div class="k-acciones">
     <button class="k-boton k-inicio" data-tecla="Enter" autofocus><kbd>Enter</kbd> Sí</button>

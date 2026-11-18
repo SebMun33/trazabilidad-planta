@@ -141,6 +141,20 @@ LOGGING = {
 # Identifica qué equipo grabó cada evento (columna `evento.dispositivo`).
 PLANTA_DISPOSITIVO = env("PLANTA_DISPOSITIVO", default="desarrollo")
 
+# --- Avisos (notas nuevas, etc.) ---------------------------------------------
+# Canales activos, separados por coma (ver planta/servicios/avisos.py).
+AVISOS_CANALES = env.list("AVISOS_CANALES", default=["planta.servicios.avisos.CanalRegistro"])
+# Correo saliente: p. ej. EMAIL_URL=smtp+tls://avisos%40midominio.com.ar:CLAVE@mail.midominio.com.ar:587
+_correo = env.email_url("EMAIL_URL", default="consolemail://")
+EMAIL_BACKEND = _correo["EMAIL_BACKEND"]
+EMAIL_HOST = _correo.get("EMAIL_HOST", "")
+EMAIL_PORT = _correo.get("EMAIL_PORT")
+EMAIL_HOST_USER = _correo.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = _correo.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = _correo.get("EMAIL_USE_TLS", False)
+EMAIL_USE_SSL = _correo.get("EMAIL_USE_SSL", False)
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Trazabilidad de planta <avisos@localhost>")
+
 # --- Kiosco (parte B) ---------------------------------------------------------
 # Las pantallas del kiosco no piden contraseña: solo responden a estas IP (el
 # navegador de la misma PC). En la nube (oficina) el kiosco no se publica.

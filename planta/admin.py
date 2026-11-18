@@ -70,3 +70,11 @@ class EventoAdmin(SoloLecturaAdmin):
 @admin.register(models.CierreDia)
 class CierreDiaAdmin(SoloLecturaAdmin):
     list_display = ["fecha", "tipo", "registrado_por", "registrado_en"]
+
+
+@admin.register(models.Nota)
+class NotaAdmin(SoloLecturaAdmin):
+    list_display = ["escrita_en", "tipo", "autor", "trabajo_id", "dispositivo"]
+    list_filter = ["tipo", "dispositivo"]
+    search_fields = ["texto", "autor"]
+    date_hierarchy = "escrita_en"

@@ -2,9 +2,16 @@
 {% block titulo_kiosco %}¿Quién sos?{% endblock %}
 {% block contenido %}
 <h1>¿Quién sos?</h1>
-<p class="suave">Tocá tu nombre o escribí su número.</p>
+<form method="post" class="k-ingreso">
+  {% csrf_token %}
+  <label class="campo"><span class="etiqueta">Escribí tu nombre</span>
+    <input name="nombre" value="{{ nombre|default:'' }}" autocomplete="off" autocapitalize="none" data-escribir required>
+  </label>
+  <button class="k-boton k-inicio">Entrar</button>
+</form>
 {% if operarios %}
-<ol class="k-opciones">
+<p class="suave">O tocá tu nombre, o escribí su número:</p>
+<ol class="k-opciones k-opciones-grilla">
   {% for id, nombre in operarios %}
   <li><a class="k-opcion" href="{% url 'kiosco:pendientes' id %}" data-numero="{{ forloop.counter }}">
     <kbd>{{ forloop.counter }}</kbd> <span class="k-grande">{{ nombre }}</span></a></li>

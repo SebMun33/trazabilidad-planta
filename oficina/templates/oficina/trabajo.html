@@ -43,6 +43,63 @@
   </tbody>
 </table>
 
+<h2 id="notas">Notas</h2>
+{% if hilos %}
+<ul class="notas">
+  {% for h in hilos %}
+  <li class="nota-hilo nota-{{ h.nota.tipo }}">
+    <div class="nota-cabecera">
+      <span class="estado e-nota-{{ h.nota.tipo }}">{{ h.nota.get_tipo_display }}</span>
+      <strong>{{ h.nota.autor }}</strong>
+      <span class="suave">{{ h.nota.escrita_en|date:"d/m/Y H:i" }}</span>
+      {% with op=operaciones|obtener:h.nota.operacion_id %}{% if op %}<span class="suave">· Op. {{ op.operacion.operacion_nro }}</span>{% endif %}{% endwith %}
+      {% if h.pregunta_abierta %}<span class="estado u3">Sin respuesta</span>{% endif %}
+    </div>
+    <p>{{ h.nota.texto|linebreaksbr }}</p>
+    {% for r in h.respuestas %}
+    <div class="nota-respuesta">
+      <div class="nota-cabecera"><strong>{{ r.autor }}</strong> <span class="suave">{{ r.escrita_en|date:"d/m/Y H:i" }}</span></div>
+      <p>{{ r.texto|linebreaksbr }}</p>
+    </div>
+    {% endfor %}
+    {% if perms.cuentas.escribir_notas %}
+    <details class="nota-responder">
+      <summary>Responder</summary>
+      <form method="post" action="{% url 'oficina:nota_nueva' t.trabajo_id %}">
+        {% csrf_token %}
+        <input type="hidden" name="responde_a" value="{{ h.nota.nota_id }}">
+        <textarea name="texto" rows="2" maxlength="2000" required aria-label="Respuesta"></textarea>
+        <button class="boton">Responder</button>
+      </form>
+    </details>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="vacio">Todavía no hay notas para este trabajo.</p>
+{% endif %}
+{% if perms.cuentas.escribir_notas %}
+<form method="post" action="{% url 'oficina:nota_nueva' t.trabajo_id %}" class="tarjeta nota-nueva">
+  {% csrf_token %}
+  <div class="grilla">
+    <label class="campo"><span class="etiqueta">Tipo</span>
+      <select name="tipo">{% for valor, etiqueta in tipos_nota %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}</select>
+    </label>
+    <label class="campo"><span class="etiqueta">Sobre</span>
+      <select name="operacion_id">
+        <option value="">Todo el trabajo</option>
+        {% for op in t.operaciones %}<option value="{{ op.operacion.operacion_id }}">Op. {{ op.operacion.operacion_nro }} · {{ op.operacion.descripcion|default:"" }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="campo campo-ancho"><span class="etiqueta">Nota</span>
+      <textarea name="texto" rows="3" maxlength="2000" required></textarea>
+    </label>
+  </div>
+  <div class="acciones"><button class="boton boton-primario">Agregar nota</button></div>
+</form>
+{% endif %}
+
 <h2>Registros de planta</h2>
 {% if eventos %}
 <table class="tabla">

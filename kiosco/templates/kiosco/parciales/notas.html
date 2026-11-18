@@ -1,0 +1,53 @@
+{# Hilos de notas y formulario. Recibe: hilos, t, operacion_id (opcional), con_operacion (bool). #}
+{% if hilos %}
+<ul class="k-notas">
+  {% for n in hilos %}
+  <li class="k-nota k-nota-{{ n.tipo }}">
+    <div class="k-linea">
+      <span class="estado e-nota-{{ n.tipo }}">{{ n.etiqueta }}</span>
+      <strong>{{ n.autor }}</strong>
+      <span class="suave">{{ n.escrita_en|date:"d/m H:i" }}</span>
+      {% if con_operacion and n.operacion_id %}{% for op in t.operaciones %}{% if op.operacion_id == n.operacion_id %}<span class="suave">· Op. {{ op.nro }}</span>{% endif %}{% endfor %}{% endif %}
+      {% if n.pendiente %}<span class="suave">· sin enviar</span>{% endif %}
+    </div>
+    <p>{{ n.texto|linebreaksbr }}</p>
+    {% for r in n.respuestas %}
+    <div class="k-respuesta">
+      <div class="k-linea"><strong>{{ r.autor }}</strong> <span class="suave">{{ r.escrita_en|date:"d/m H:i" }}</span>{% if r.pendiente %}<span class="suave">· sin enviar</span>{% endif %}</div>
+      <p>{{ r.texto|linebreaksbr }}</p>
+    </div>
+    {% endfor %}
+    <details class="k-responder">
+      <summary>Responder</summary>
+      <form method="post" action="{% url 'kiosco:nota' operario_id t.trabajo_id %}">
+        {% csrf_token %}
+        <input type="hidden" name="responde_a" value="{{ n.nota_id }}">
+        <input type="hidden" name="volver" value="{{ request.get_full_path }}">
+        <textarea name="texto" rows="2" maxlength="2000" required aria-label="Respuesta"></textarea>
+        <button class="boton">Responder</button>
+      </form>
+    </details>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="suave">Todavía no hay notas.</p>
+{% endif %}
+<form method="post" action="{% url 'kiosco:nota' operario_id t.trabajo_id %}" class="k-form k-nueva-nota">
+  {% csrf_token %}
+  <input type="hidden" name="volver" value="{{ request.get_full_path }}">
+  {% if operacion_id %}<input type="hidden" name="operacion_id" value="{{ operacion_id }}">{% endif %}
+  <div class="k-linea">
+    {% for valor, etiqueta in tipos_nota %}
+    <label class="k-tipo"><input type="radio" name="tipo" value="{{ valor }}" {% if forloop.first %}checked{% endif %}> {{ etiqueta }}</label>
+    {% endfor %}
+    {% if con_operacion %}
+    <select name="operacion_id" aria-label="Sobre qué">
+      <option value="">Todo el trabajo</option>
+      {% for op in t.operaciones %}<option value="{{ op.operacion_id }}">Op. {{ op.nro }} · {{ op.descripcion|default:"" }}</option>{% endfor %}
+    </select>
+    {% endif %}
+  </div>
+  <textarea name="texto" rows="2" maxlength="2000" required placeholder="Escribí la nota…" aria-label="Nota" data-tecla="n"></textarea>
+  <div><button class="boton boton-primario">Agregar nota</button> <span class="suave"><kbd>N</kbd> para escribir</span></div>
+</form>

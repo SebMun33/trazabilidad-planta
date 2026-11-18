@@ -1,3 +1,4 @@
+{% load oficina %}
 {% if trabajos %}
 <table class="tabla">
   <thead><tr><th>Urgencia</th><th>Plano</th><th>Cliente</th><th>Pedido</th><th class="num">Cant.</th><th>Entrega est.</th><th>Avance</th><th>Estado</th></tr></thead>
@@ -12,7 +13,8 @@
       <td class="num">{% if t.revision.cantidad %}{{ t.revision.cantidad|floatformat:"-2" }}{% else %}—{% endif %}</td>
       <td>{{ t.revision.fecha_entrega_estimada|date:"d/m/Y"|default:"—" }}</td>
       <td>{{ t.terminadas }} de {{ t.operaciones|length }}</td>
-      <td><span class="estado e-{{ t.estado }}">{{ t.etiqueta }}</span></td>
+      <td><span class="estado e-{{ t.estado }}">{{ t.etiqueta }}</span>
+        {% with n=preguntas|obtener:t.trabajo_id %}{% if n %}<br><a class="estado e-nota-pregunta" href="{% url 'oficina:trabajo' t.trabajo_id %}#notas">{{ n }} pregunta{{ n|pluralize }}</a>{% endif %}{% endwith %}</td>
     </tr>
   {% endfor %}
   </tbody>

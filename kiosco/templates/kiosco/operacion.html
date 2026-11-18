@@ -18,6 +18,11 @@
 {% else %}
 <form method="post" class="k-form">
   {% csrf_token %}
+  <label class="campo"><span class="etiqueta">¿Quién lo hizo?</span>
+    <select name="operario">
+      {% for id, nombre in operarios %}<option value="{{ id }}" {% if id == operario_id %}selected{% endif %}>{{ nombre }}</option>{% endfor %}
+    </select>
+  </label>
   <label class="campo"><span class="etiqueta">Máquina</span>
     <select name="maquina_id">
       <option value="">Sin asignar</option>
@@ -37,4 +42,6 @@
   </div>
 </form>
 {% endif %}
+<h2>Notas de esta operación</h2>
+{% include "kiosco/parciales/notas.html" with hilos=notas operacion_id=op.operacion_id %}
 {% endblock %}

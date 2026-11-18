@@ -27,6 +27,7 @@
       {% if t.observaciones %}<span class="k-obs">{{ t.observaciones }}</span>{% endif %}
       <span class="k-linea">
         <span class="estado e-{{ t.estado }}">{{ t.terminadas }}/{{ t.operaciones|length }} operaciones</span>
+        {% if t.preguntas_abiertas %}<span class="estado e-nota-pregunta">{{ t.preguntas_abiertas }} pregunta{{ t.preguntas_abiertas|pluralize }}</span>{% elif t.notas %}<span class="estado e-pausada">{{ t.notas|length }} nota{{ t.notas|length|pluralize }}</span>{% endif %}
         {% for op in t.abiertas %}<span class="estado e-en_proceso">Op. {{ op.nro }} en proceso{% if op.operario_nombre %} · {{ op.operario_nombre }}{% endif %}</span>{% endfor %}
       </span>
     </span>

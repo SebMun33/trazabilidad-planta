@@ -15,4 +15,5 @@ urlpatterns = [
         name="operacion",
     ),
     path("<int:operario_id>/deshacer/<uuid:evento_id>/", views.deshacer, name="deshacer"),
+    path("<int:operario_id>/trabajo/<uuid:trabajo_id>/nota/", views.nota, name="nota"),
 ]

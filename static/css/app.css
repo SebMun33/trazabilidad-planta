@@ -144,6 +144,19 @@ tr.anulado td:last-child { text-decoration: none; }
 .login { min-height: 100vh; display: grid; place-items: center; padding: 1rem; }
 .login .tarjeta { width: 100%; max-width: 24rem; margin: 0; }
 
+/* Notas (oficina) */
+.notas { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: .6rem; }
+.nota-hilo { background: var(--superficie); border: 1px solid var(--borde); border-left: 4px solid var(--borde); border-radius: var(--radio); padding: .6rem .9rem; }
+.nota-hilo p { margin: .35rem 0; }
+.nota-pregunta { border-left-color: var(--peligro); }
+.nota-sugerencia { border-left-color: var(--primario); }
+.nota-observacion { border-left-color: var(--aviso); }
+.nota-cabecera { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; }
+.nota-respuesta { margin: .4rem 0 0 1rem; padding-left: .7rem; border-left: 2px solid var(--borde); }
+.nota-responder summary { cursor: pointer; color: var(--primario); }
+.nota-responder form { display: grid; gap: .4rem; max-width: 40rem; margin-top: .4rem; }
+.nota-nueva { max-width: none; margin-top: .5rem; }
+
 /* --- Kiosco de planta: letra grande, todo se usa con mouse o teclado --- */
 .kiosco { font-size: 1.15rem; min-height: 100vh; }
 .k-barra {
@@ -187,6 +200,25 @@ kbd {
   background: var(--ok-fondo); color: var(--ok);
 }
 .k-confirmar { max-width: 40rem; margin: 2rem auto; }
+.k-ingreso { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem; max-width: 40rem; margin: 1rem 0 1.5rem; }
+.k-ingreso .campo { flex: 1 1 16rem; }
+.k-ingreso input { font-size: 1.35rem; padding: .7rem .9rem; }
+.k-opciones-grilla { grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); }
+.k-notas { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: .6rem; }
+.k-nota { background: var(--superficie); border: 1px solid var(--borde); border-left: 4px solid var(--borde); border-radius: var(--radio); padding: .6rem .9rem; }
+.k-nota p { margin: .35rem 0; }
+.k-nota-pregunta { border-left-color: var(--peligro); }
+.k-nota-sugerencia { border-left-color: var(--primario); }
+.k-nota-observacion { border-left-color: var(--aviso); }
+.k-respuesta { margin: .4rem 0 0 1rem; padding-left: .7rem; border-left: 2px solid var(--borde); }
+.k-responder summary { cursor: pointer; color: var(--primario); font-size: .95rem; }
+.k-responder form { display: grid; gap: .4rem; margin-top: .4rem; }
+.k-tipo { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .7rem; border: 1px solid var(--borde); border-radius: var(--radio); cursor: pointer; }
+.k-nueva-nota select { width: auto; }
+.e-nota-pregunta { background: var(--error-fondo); color: var(--peligro); }
+.e-nota-sugerencia { background: var(--info-fondo); color: var(--primario); }
+.e-nota-observacion { background: var(--aviso-fondo); color: var(--aviso); }
+.e-nota-respuesta { background: var(--ok-fondo); color: var(--ok); }
 
 @media (max-width: 760px) {
   .tabla { display: block; overflow-x: auto; }

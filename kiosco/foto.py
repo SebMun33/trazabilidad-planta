@@ -8,7 +8,7 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from planta.models import CierreDia, Maquina, Operario, TrabajoRevision
+from planta.models import CierreDia, Maquina, Nota, Operario, TrabajoRevision
 from planta.servicios import estado as est
 
 # Los trabajos terminados siguen un día en la copia: así un "Terminé" se puede
@@ -21,7 +21,19 @@ def _iso(valor):
     return valor.isoformat() if valor is not None else None
 
 
-def _trabajo(t: est.EstadoTrabajo) -> dict:
+def _nota(n: Nota) -> dict:
+    return {
+        "nota_id": str(n.nota_id),
+        "operacion_id": str(n.operacion_id) if n.operacion_id else None,
+        "tipo": n.tipo,
+        "texto": n.texto,
+        "autor": n.autor,
+        "escrita_en": _iso(n.escrita_en),
+        "responde_a": str(n.responde_a_id) if n.responde_a_id else None,
+    }
+
+
+def _trabajo(t: est.EstadoTrabajo, notas: list) -> dict:
     r = t.revision
     return {
         "trabajo_id": str(r.trabajo_id),
@@ -58,6 +70,7 @@ def _trabajo(t: est.EstadoTrabajo) -> dict:
             }
             for e in t.eventos
         ],
+        "notas": [_nota(n) for n in notas],
     }
 
 
@@ -83,6 +96,10 @@ def armar_foto() -> dict:
             and ahora - t.ultima_actividad < TERMINADOS_VISIBLES
         )
     ]
+    notas: dict = {}
+    consulta = Nota.objects.filter(trabajo_id__in=[t.trabajo_id for t in trabajos])
+    for nota in consulta.order_by("escrita_en", "registrada_en"):
+        notas.setdefault(nota.trabajo_id, []).append(nota)
     return {
         "generada_en": ahora.isoformat(),
         "operarios": [
@@ -94,5 +111,5 @@ def armar_foto() -> dict:
             for m in Maquina.objects.order_by("maquina_id")
         ],
         "dias_cerrados": _dias_cerrados(timezone.localdate()),
-        "trabajos": [_trabajo(t) for t in trabajos],
+        "trabajos": [_trabajo(t, notas.get(t.trabajo_id, [])) for t in trabajos],
     }

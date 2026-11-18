@@ -332,3 +332,36 @@ def test_supervisor_cierra_y_reabre(supervisor):
     assert pagina.context["resumen"].cerrado
     supervisor.post(url, {"fecha": hoy, "accion": "reabrir", "observaciones": "corrección"})
     assert not supervisor.get(url, {"fecha": hoy}).context["resumen"].cerrado
+
+
+# --- notas ---------------------------------------------------------------------
+def test_oficina_escribe_y_responde_notas(oficina):
+    from planta.models import Nota
+
+    revision = crear_trabajo(DatosTrabajo(plano="N-2"), [DatosOperacion(descripcion="Fresar")], "x")
+    url = reverse("oficina:nota_nueva", args=[revision.trabajo_id])
+    op = revision.operaciones.get()
+    oficina.post(
+        url, {"tipo": "pregunta", "texto": "¿Cuántas faltan?", "operacion_id": op.operacion_id}
+    )
+    pregunta = Nota.objects.get()
+    assert pregunta.autor == "ofi" and pregunta.usuario_id is not None
+    lista = oficina.get(reverse("oficina:pendientes")).content.decode()
+    assert "1 pregunta" in lista
+    oficina.post(url, {"responde_a": pregunta.nota_id, "texto": "Quedan 10"})
+    detalle = oficina.get(reverse("oficina:trabajo", args=[revision.trabajo_id])).content.decode()
+    assert "¿Cuántas faltan?" in detalle and "Quedan 10" in detalle and "Op. 1" in detalle
+    assert "1 pregunta" not in oficina.get(reverse("oficina:pendientes")).content.decode()
+
+
+def test_contabilidad_lee_notas_pero_no_escribe(contabilidad):
+    from planta.models import Nota
+    from planta.servicios.notas import crear_nota
+
+    revision = crear_trabajo(DatosTrabajo(plano="N-3"), [DatosOperacion()], "x")
+    crear_nota(trabajo_id=revision.trabajo_id, tipo="observacion", texto="Ojo", autor="Ana")
+    detalle = contabilidad.get(reverse("oficina:trabajo", args=[revision.trabajo_id]))
+    assert "Ojo" in detalle.content.decode() and "Agregar nota" not in detalle.content.decode()
+    url = reverse("oficina:nota_nueva", args=[revision.trabajo_id])
+    assert contabilidad.post(url, {"tipo": "observacion", "texto": "x"}).status_code == 403
+    assert Nota.objects.count() == 1

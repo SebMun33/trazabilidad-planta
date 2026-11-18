@@ -14,6 +14,7 @@ urlpatterns = [
     path("trabajos/<uuid:trabajo_id>/", views.trabajo_detalle, name="trabajo"),
     path("trabajos/<uuid:trabajo_id>/revisar/", views.trabajo_revisar, name="trabajo_revisar"),
     path("trabajos/<uuid:trabajo_id>/retirar/", views.trabajo_retirar, name="trabajo_retirar"),
+    path("trabajos/<uuid:trabajo_id>/notas/", views.nota_nueva, name="nota_nueva"),
     path("registros/", views.registros, name="registros"),
     path("registros/<uuid:evento_id>/anular/", views.evento_anular, name="evento_anular"),
     path("cierre/", views.cierre, name="cierre"),

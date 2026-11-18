@@ -325,3 +325,87 @@ def test_comando_de_sincronizacion_una_vuelta(kiosco):
     call_command("sincronizar_kiosco", "--una-vez", stdout=salida)
     assert "Enviados: 1" in salida.getvalue()
     assert Evento.objects.count() == 1
+
+
+# --- ingreso por nombre, «¿quién lo hizo?» y notas ---------------------------------
+def test_ingreso_escribiendo_el_nombre(client, kiosco):
+    respuesta = client.post(reverse("kiosco:inicio"), {"nombre": "  aNa "})
+    assert respuesta.status_code == 302
+    assert respuesta.url == reverse("kiosco:pendientes", args=[kiosco["ana"].operario_id])
+    error = client.post(reverse("kiosco:inicio"), {"nombre": "Nadie"})
+    assert error.status_code == 404 and "No hay ningún operario" in error.content.decode()
+
+
+def test_un_operario_anota_lo_que_hizo_otro(client, kiosco):
+    ana, beto = kiosco["ana"].operario_id, kiosco["beto"].operario_id
+    url_op = reverse(
+        "kiosco:operacion", args=[ana, kiosco["revision"].trabajo_id, kiosco["ops"][0].operacion_id]
+    )
+    assert "¿Quién lo hizo?" in client.get(url_op).content.decode()
+    client.post(url_op, {"accion": "empezado", "operario": str(beto)})
+    pendiente = EventoPendiente.objects.get()
+    assert pendiente.operario_id == beto and pendiente.cargado_por_id == ana
+    assert pendiente.registrado_por == "kiosco: Ana"
+    assert _op_local(kiosco).operario_nombre == "Beto"
+    # Ana puede deshacer lo que cargó, y el aviso dice por quién.
+    lista = client.get(reverse("kiosco:pendientes", args=[ana])).content.decode()
+    assert "Empezó la operación 1 de KI-01 (por Beto)" in lista
+    sincronizar()
+    assert Evento.objects.get().operario_id == beto
+
+
+def test_nota_sin_conexion_se_ve_y_despues_se_envia(client, kiosco, monkeypatch):
+    ana = kiosco["ana"].operario_id
+    t = kiosco["revision"].trabajo_id
+    op = kiosco["ops"][1].operacion_id
+    respuesta = client.post(
+        reverse("kiosco:nota", args=[ana, t]),
+        {"tipo": "pregunta", "texto": "¿Con qué fresa?", "operacion_id": str(op)},
+    )
+    assert respuesta.status_code == 302
+    detalle = client.get(reverse("kiosco:trabajo", args=[ana, t])).content.decode()
+    assert "¿Con qué fresa?" in detalle and "sin enviar" in detalle
+    lista = client.get(reverse("kiosco:pendientes", args=[ana])).content.decode()
+    assert "1 pregunta" in lista
+
+    from planta.models import Nota
+
+    resultado = sincronizar(forzar_copia=True)
+    assert resultado.notas_enviadas == 1
+    nota = Nota.objects.get()
+    assert nota.autor == "Ana" and nota.operario_id == ana and nota.operacion_id == op
+    detalle = client.get(reverse("kiosco:trabajo", args=[ana, t])).content.decode()
+    assert detalle.count("¿Con qué fresa?") == 1 and "sin enviar" not in detalle
+
+
+def test_responder_desde_el_kiosco_una_pregunta_de_oficina(client, kiosco):
+    from planta.models import Nota
+    from planta.servicios.notas import crear_nota
+
+    pregunta = crear_nota(
+        trabajo_id=kiosco["revision"].trabajo_id,
+        tipo=Nota.Tipo.PREGUNTA,
+        texto="¿Ya llegó el material?",
+        autor="Oficina",
+    )
+    sincronizar(forzar_copia=True)
+    ana = kiosco["ana"].operario_id
+    t = kiosco["revision"].trabajo_id
+    client.post(
+        reverse("kiosco:nota", args=[ana, t]),
+        {"responde_a": str(pregunta.nota_id), "texto": "Sí, ayer"},
+    )
+    sincronizar(forzar_copia=True)
+    respuesta = Nota.objects.get(tipo=Nota.Tipo.RESPUESTA)
+    assert respuesta.responde_a_id == pregunta.nota_id and respuesta.autor == "Ana"
+    planta = local.cargar_planta()
+    hilo = planta.trabajo(t).notas[0]
+    assert [r.texto for r in hilo.respuestas] == ["Sí, ayer"]
+
+
+def test_nota_vacia_se_rechaza_en_pantalla(client, kiosco):
+    ana = kiosco["ana"].operario_id
+    respuesta = client.post(
+        reverse("kiosco:nota", args=[ana, kiosco["revision"].trabajo_id]), {"texto": "  "}
+    )
+    assert respuesta.status_code == 409 and "vacía" in respuesta.content.decode()

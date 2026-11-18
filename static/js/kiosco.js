@@ -8,7 +8,9 @@
 
   function activar(elemento) {
     if (!elemento) return false;
-    if (elemento.tagName === "A") {
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(elemento.tagName)) {
+      elemento.focus();
+    } else if (elemento.tagName === "A") {
       window.location.href = elemento.href;
     } else {
       elemento.click();
@@ -51,7 +53,13 @@
       return;
     }
     const tecla = evento.key.length === 1 ? evento.key.toLowerCase() : evento.key;
-    if (activar(document.querySelector('[data-tecla="' + tecla + '"]'))) evento.preventDefault();
+    if (activar(document.querySelector('[data-tecla="' + tecla + '"]'))) {
+      evento.preventDefault();
+      return;
+    }
+    // En «¿Quién sos?», empezar a escribir una letra va directo al campo del nombre.
+    const campo = document.querySelector("[data-escribir]");
+    if (campo && /^\p{L}$/u.test(evento.key)) campo.focus();
   });
 
   // «Deshacer»: muestra los segundos que quedan y se oculta al vencer.

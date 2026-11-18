@@ -38,7 +38,9 @@ class EventoPendiente(models.Model):
     trabajo_id = models.UUIDField()
     operacion_id = models.UUIDField(null=True, blank=True)
     maquina_id = models.IntegerField(null=True, blank=True)
-    operario_id = models.IntegerField(null=True, blank=True)
+    operario_id = models.IntegerField(null=True, blank=True)  # quién hizo el trabajo
+    # Quién lo cargó en el kiosco (puede anotar lo que hizo otro operario).
+    cargado_por_id = models.IntegerField(null=True, blank=True)
     ocurrido_en = models.DateTimeField()
     observaciones = models.TextField(blank=True, default="")
     anula_evento_id = models.UUIDField(null=True, blank=True)
@@ -55,6 +57,37 @@ class EventoPendiente(models.Model):
 
     def __str__(self) -> str:
         return f"{self.tipo} {self.evento_id}"
+
+    @property
+    def pendiente(self) -> bool:
+        return self.enviado_en is None and self.rechazado_en is None
+
+
+class NotaPendiente(models.Model):
+    """Nota escrita en el kiosco, con su estado de envío a la base central."""
+
+    id = models.BigAutoField(primary_key=True)
+    nota_id = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+    trabajo_id = models.UUIDField()
+    operacion_id = models.UUIDField(null=True, blank=True)
+    tipo = models.CharField(max_length=20)
+    texto = models.TextField()
+    responde_a = models.UUIDField(null=True, blank=True)
+    operario_id = models.IntegerField()  # autor
+    autor = models.CharField(max_length=200)
+    escrita_en = models.DateTimeField()
+    creado_en = models.DateTimeField(auto_now_add=True)
+    enviado_en = models.DateTimeField(null=True, blank=True)
+    rechazado_en = models.DateTimeField(null=True, blank=True)
+    intentos = models.PositiveIntegerField(default=0)
+    ultimo_error = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ["id"]
+        indexes = [models.Index(fields=["enviado_en", "rechazado_en"])]
+
+    def __str__(self) -> str:
+        return f"{self.tipo} {self.nota_id}"
 
     @property
     def pendiente(self) -> bool:

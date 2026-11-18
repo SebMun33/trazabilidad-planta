@@ -11,9 +11,10 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from planta.models import CotizacionSinPedido, Evento, PedidoPendiente, TrabajoRevision
+from planta.models import CotizacionSinPedido, Evento, Nota, PedidoPendiente, TrabajoRevision
 from planta.servicios import ReglaDeNegocioError
 from planta.servicios import estado as est
+from planta.servicios import notas as notas_srv
 from planta.servicios.jornada import (
     anular_evento,
     cerrar_dia,
@@ -35,6 +36,7 @@ from .forms import MotivoForm, OperacionFormSet, TrabajoForm, opciones_maquina
 from .permisos import (
     requiere_anular,
     requiere_cierre,
+    requiere_notas,
     requiere_preparar,
     requiere_ver,
 )
@@ -89,7 +91,13 @@ def pendientes(request):
     if texto:
         trabajos = [t for t in trabajos if texto.lower() in _texto_busqueda(t)]
 
-    contexto = {"trabajos": trabajos, "filtro": filtro, "filtros": FILTROS_ESTADO, "q": texto}
+    contexto = {
+        "trabajos": trabajos,
+        "filtro": filtro,
+        "filtros": FILTROS_ESTADO,
+        "q": texto,
+        "preguntas": notas_srv.preguntas_abiertas([t.trabajo_id for t in trabajos]),
+    }
     if request.htmx:
         return render(request, "oficina/parciales/tabla_pendientes.html", contexto)
     return render(request, "oficina/pendientes.html", contexto)
@@ -376,8 +384,33 @@ def trabajo_detalle(request, trabajo_id):
             "eventos": eventos,
             "anulados": {e.anula_evento_id for e in eventos if e.anula_evento_id},
             "operaciones": {o.operacion.operacion_id: o for o in estado.operaciones},
+            "hilos": notas_srv.hilos_de_trabajo(trabajo_id),
+            "tipos_nota": [(t, Nota.Tipo(t).label) for t in notas_srv.TIPOS_INICIALES],
         },
     )
+
+
+@requiere_notas
+@require_POST
+def nota_nueva(request, trabajo_id):
+    """Observación, sugerencia, pregunta o respuesta escrita desde oficina."""
+    _estado_o_404(trabajo_id)
+    responde_a = request.POST.get("responde_a") or None
+    try:
+        notas_srv.crear_nota(
+            trabajo_id=trabajo_id,
+            tipo=Nota.Tipo.RESPUESTA if responde_a else request.POST.get("tipo", ""),
+            texto=request.POST.get("texto", ""),
+            operacion_id=request.POST.get("operacion_id") or None,
+            responde_a_id=responde_a,
+            autor=request.user.get_full_name() or request.user.get_username(),
+            usuario_id=request.user.pk,
+        )
+    except ReglaDeNegocioError as error:
+        messages.error(request, str(error))
+    else:
+        messages.success(request, "Nota agregada.")
+    return redirect(reverse("oficina:trabajo", args=[trabajo_id]) + "#notas")
 
 
 @requiere_preparar
