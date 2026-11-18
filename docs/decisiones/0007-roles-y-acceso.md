@@ -19,13 +19,17 @@ uno; en el admin se elige de una lista y nunca se tocan permisos sueltos:
 | Rol | Permisos |
 |---|---|
 | Operario | registrar avances, escribir notas (kiosco, sin contraseña) |
-| Oficina técnica | ver, preparar pendientes, escribir notas, anular registros, cerrar el día |
-| Contabilidad | ver (solo lectura) |
+| Oficina técnica | ver, preparar pendientes, escribir notas, anular registros, cerrar el día, ver importes |
+| Contabilidad | ver e importes (solo lectura) |
 | Staff | todo, admin incluido, salvo ver o editar superusuarios |
 
 El superusuario no es un rol: es la cuenta personal del dueño del sistema. Los
 permisos se declaran en un modelo sin tabla (`cuentas.Permisos`) y los grupos se
 sincronizan con el código después de cada `migrate`.
+
+Los importes de las cotizaciones (costos y precios de FoxPro) requieren el
+permiso `ver_importes`. Los operarios nunca lo tienen y la copia del kiosco no
+incluye importes.
 
 **Ingreso por nombre.** Se escribe el nombre (sin importar mayúsculas ni tildes);
 si el usuario tiene contraseña, se pide en un segundo paso. Los usuarios sin
