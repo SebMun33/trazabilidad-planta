@@ -56,6 +56,19 @@ permisos para cambiar tablas. Cuando un cambio trae migraciones, aplicarlas
 bash ops/migrar.sh
 ```
 
+## Avisos por mail (opcional)
+
+Cuando un operario deja una nota, la app avisa a Oficina técnica y Staff. Para
+que llegue por mail, cargar en Render:
+
+| Variable | Valor |
+|---|---|
+| `AVISOS_CANALES` | `planta.servicios.avisos.CanalRegistro,planta.servicios.avisos.CanalCorreo` |
+| `EMAIL_URL` | `smtp+tls://avisos%40midominio.com.ar:CLAVE@mail.midominio.com.ar:587` (casilla del dominio; `%40` es la `@`) |
+| `DEFAULT_FROM_EMAIL` | `Trazabilidad de planta <avisos@midominio.com.ar>` |
+
+Los usuarios que quieran recibirlos necesitan un mail cargado en su ficha del admin.
+
 ## 3. Dominio propio (DNS en DonWeb / Ferozo)
 
 1. En Render: servicio → **Settings → Custom Domains → Add** y escribir
