@@ -47,8 +47,16 @@ class OperacionForm(forms.Form):
     maquina_id = forms.TypedChoiceField(
         label="Máquina", required=False, coerce=int, empty_value=None, choices=()
     )
-    descripcion = forms.CharField(label="Proceso", required=False, max_length=300)
-    observaciones = forms.CharField(required=False, max_length=1000)
+    # Las descripciones de la hoja de ruta de FoxPro suelen pasar los 500 caracteres.
+    descripcion = forms.CharField(
+        label="Proceso",
+        required=False,
+        max_length=4000,
+        widget=forms.Textarea(attrs={"rows": 2}),
+    )
+    observaciones = forms.CharField(
+        required=False, max_length=2000, widget=forms.Textarea(attrs={"rows": 2})
+    )
     operacion_id = forms.UUIDField(required=False, widget=forms.HiddenInput)
 
     def __init__(self, *args, opciones=(), **kwargs):

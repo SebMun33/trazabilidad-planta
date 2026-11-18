@@ -2,6 +2,9 @@
 <form method="post" action="{{ accion_url }}" class="form-trabajo">
   {% csrf_token %}
   {% if revision_base %}<input type="hidden" name="revision_base" value="{{ revision_base }}">{% endif %}
+  {% if form.errors or formset.total_error_count %}
+  <p class="alerta alerta-error" role="alert">No se pudo guardar: revisá los campos marcados en rojo.</p>
+  {% endif %}
   {% for error in form.non_field_errors %}<p class="alerta alerta-error">{{ error }}</p>{% endfor %}
 
   <fieldset class="grilla">
@@ -35,8 +38,8 @@
         <tr>
           <td>{{ forloop.counter }}{{ f.operacion_id }}</td>
           <td>{{ f.maquina_id }}{% for e in f.maquina_id.errors %}<small class="error">{{ e }}</small>{% endfor %}</td>
-          <td>{{ f.descripcion }}</td>
-          <td>{{ f.observaciones }}</td>
+          <td>{{ f.descripcion }}{% for e in f.descripcion.errors %}<small class="error">{{ e }}</small>{% endfor %}</td>
+          <td>{{ f.observaciones }}{% for e in f.observaciones.errors %}<small class="error">{{ e }}</small>{% endfor %}</td>
           <td>{% if con_registros|contiene:f.operacion_id.value %}<span class="suave" title="Tiene registros de planta">Con registros</span>{% else %}{{ f.DELETE }}{% endif %}</td>
         </tr>
       {% endfor %}

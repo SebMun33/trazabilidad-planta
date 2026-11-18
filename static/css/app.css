@@ -108,6 +108,7 @@ legend { font-weight: 700; padding: 0 .4rem; }
 .tabla tr:last-child td { border-bottom: none; }
 .tabla-ops td { vertical-align: middle; }
 .tabla-ops select { min-width: 12rem; }
+.tabla-ops textarea { min-width: 16rem; resize: vertical; }
 tr.anulado td { text-decoration: line-through; color: var(--suave); }
 tr.anulado td:last-child { text-decoration: none; }
 

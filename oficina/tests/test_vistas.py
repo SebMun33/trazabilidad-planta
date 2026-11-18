@@ -365,3 +365,24 @@ def test_contabilidad_lee_notas_pero_no_escribe(contabilidad):
     url = reverse("oficina:nota_nueva", args=[revision.trabajo_id])
     assert contabilidad.post(url, {"tipo": "observacion", "texto": "x"}).status_code == 403
     assert Nota.objects.count() == 1
+
+
+# --- regresión: descripciones largas de FoxPro --------------------------------
+def test_enviar_cotizacion_con_descripcion_larga_de_foxpro(oficina, demo):
+    # Las hojas de ruta reales tienen descripciones de 300 a 700 caracteres.
+    larga = "Tornear exterior según plano, " * 25
+    url = reverse("oficina:trabajo_nuevo") + "?origen=cotizacion&ref=2101-1"
+    datos = _post_trabajo(plano="SEP-08", **{"ops-0-descripcion": larga})
+    respuesta = oficina.post(url, datos)
+    assert respuesta.status_code == 302
+    revision = TrabajoRevision.objects.get()
+    assert revision.origen == "cotizacion" and revision.cotizacion_id == 2101
+    assert revision.operaciones.get().descripcion == larga.strip()
+
+
+def test_formulario_invalido_avisa_arriba(oficina, demo):
+    url = reverse("oficina:trabajo_nuevo") + "?origen=manual"
+    respuesta = oficina.post(url, _post_trabajo(plano=""))
+    assert respuesta.status_code == 200
+    assert "No se pudo guardar: revisá los campos marcados" in respuesta.content.decode()
+    assert not TrabajoRevision.objects.exists()
