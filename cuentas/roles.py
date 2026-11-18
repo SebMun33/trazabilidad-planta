@@ -4,7 +4,7 @@
 |------------------|-------------------------------------------------------------|
 | operario         | Registra avances y notas en el kiosco (sin contraseña)      |
 | oficina_tecnica  | Prepara pendientes, revisa, anula registros y cierra el día |
-| contabilidad     | Solo lectura de trabajos, estados y registros               |
+| contabilidad     | Solo lectura de trabajos, estados, registros e importes     |
 | staff            | Todo, admin incluido, salvo tocar superusuarios             |
 
 El superusuario no es un rol: es la cuenta personal del dueño del sistema.
@@ -47,9 +47,12 @@ ROLES = {
                 "escribir_notas",
                 "anular_registros",
                 "cerrar_dia",
+                "ver_importes",
             ),
         ),
-        Rol(CONTABILIDAD, "Contabilidad", ("ver_trabajos",)),
+        # Los operarios nunca ven plata: no tienen `ver_importes` y el kiosco no
+        # recibe ningún importe (ver kiosco/foto.py).
+        Rol(CONTABILIDAD, "Contabilidad", ("ver_trabajos", "ver_importes")),
         Rol(STAFF, "Staff", (), es_staff=True),
     ]
 }

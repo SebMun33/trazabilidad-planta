@@ -8,7 +8,8 @@
 {% if pedido %}
 <p class="origen">Desde el pedido <strong>{{ pedido.pedido_id }}</strong>{% if pedido.orden_compra %} (orden de compra {{ pedido.orden_compra }}){% endif %} · pendiente {{ pedido.cantidad_pendiente|floatformat:"-2" }}</p>
 {% elif cotizacion %}
-<p class="origen">Desde la cotización <strong>{{ cotizacion.cotizacion_id }}</strong> del {{ cotizacion.fecha_cotizacion|date:"d/m/Y" }}. Todavía no hay pedido en FoxPro.</p>
+<p class="origen">Desde la cotización <strong>{{ cotizacion.cotizacion_id }}</strong> del {{ cotizacion.fecha_cotizacion|date:"d/m/Y" }}. Todavía no hay pedido en FoxPro.
+  {% if perms.cuentas.ver_importes and cotizacion.precio_unitario is not None %}<br>Cotizado: $ {{ cotizacion.precio_unitario|floatformat:"2g" }} por pieza{% if cotizacion.importe is not None %} · importe $ {{ cotizacion.importe|floatformat:"2g" }}{% endif %}{% endif %}</p>
 {% elif not t %}
 <p class="origen">Carga manual: para trabajos que todavía no están en FoxPro.</p>
 {% endif %}

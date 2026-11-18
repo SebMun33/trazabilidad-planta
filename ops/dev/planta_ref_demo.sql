@@ -51,6 +51,13 @@ CREATE TABLE IF NOT EXISTS planta_demo.cotizaciones_lineas (
     PRIMARY KEY (cotizacion_id, renglon)
 );
 
+-- Columnas agregadas después (bases de demo ya creadas).
+ALTER TABLE planta_demo.clientes ADD COLUMN IF NOT EXISTS cuit text;
+ALTER TABLE planta_demo.cotizaciones_lineas
+    ADD COLUMN IF NOT EXISTS costo_mp_unitario numeric(14, 2),
+    ADD COLUMN IF NOT EXISTS costo_mo_unitario numeric(14, 2),
+    ADD COLUMN IF NOT EXISTS precio_unitario   numeric(14, 2);
+
 -- Las bases creadas antes de agregar `renglon` se recrean (solo datos de demo).
 DO $$
 BEGIN
@@ -120,7 +127,12 @@ SELECT
     c.razon_social                                    AS cliente,
     l.plano,
     p.descripcion                                     AS plano_descripcion,
-    l.cantidad
+    l.cantidad,
+    -- Valores cotizados tal cual los guarda FoxPro (DATA1110), por pieza.
+    l.costo_mp_unitario,
+    l.costo_mo_unitario,
+    l.precio_unitario,
+    l.cantidad * l.precio_unitario                    AS importe
 FROM planta_demo.cotizaciones_lineas l
 LEFT JOIN planta_demo.clientes c USING (cliente_id)
 LEFT JOIN planta_demo.planos p USING (plano)
@@ -136,6 +148,10 @@ SELECT
     piezas_hora,
     renglon
 FROM planta_demo.rutas;
+
+CREATE OR REPLACE VIEW planta_ref.clientes AS
+SELECT cliente_id, razon_social, cuit
+FROM planta_demo.clientes;
 
 CREATE OR REPLACE VIEW planta_ref.ultima_publicacion AS
 SELECT max(fin) AS publicado_en

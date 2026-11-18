@@ -409,3 +409,13 @@ def test_nota_vacia_se_rechaza_en_pantalla(client, kiosco):
         reverse("kiosco:nota", args=[ana, kiosco["revision"].trabajo_id]), {"texto": "  "}
     )
     assert respuesta.status_code == 409 and "vacía" in respuesta.content.decode()
+
+
+def test_el_kiosco_nunca_recibe_importes(kiosco):
+    import json
+
+    from kiosco.foto import armar_foto
+
+    texto = json.dumps(armar_foto()).lower()
+    for palabra in ("precio", "importe", "costo", "cotizacion_linea"):
+        assert palabra not in texto

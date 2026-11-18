@@ -19,6 +19,7 @@ class Permisos(models.Model):
             ("escribir_notas", "Escribir observaciones, sugerencias y preguntas"),
             ("anular_registros", "Anular registros de planta"),
             ("cerrar_dia", "Cerrar y reabrir el día"),
+            ("ver_importes", "Ver precios, costos e importes"),
         ]
 
     def __str__(self) -> str:

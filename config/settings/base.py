@@ -39,7 +39,6 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -111,7 +110,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # --- Internacionalización ----------------------------------------------------
+# Solo español de Argentina, sin importar el idioma del navegador (formato de
+# números y montos: $ 93.000,00).
 LANGUAGE_CODE = "es-ar"
+LANGUAGES = [("es-ar", "Español (Argentina)")]
 TIME_ZONE = "America/Argentina/Buenos_Aires"
 USE_I18N = True
 USE_TZ = True

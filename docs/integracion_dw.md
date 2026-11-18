@@ -1,6 +1,6 @@
 # Integración con el data warehouse (`planta_ref`)
 
-La app **no lee FoxPro ni las tablas del data warehouse**. Lee únicamente cinco
+La app **no lee FoxPro ni las tablas del data warehouse**. Lee únicamente seis
 vistas del esquema `planta_ref`, que publica el proyecto dbt del warehouse. Esas
 vistas son el **contrato**: mientras respeten nombres y tipos de columnas, el
 warehouse puede reorganizarse por dentro sin tocar la app.
@@ -66,6 +66,21 @@ Renglones cotizados que todavía no originaron un pedido y siguen vigentes.
 | `plano` | text | |
 | `plano_descripcion` | text, nullable | |
 | `cantidad` | numeric | |
+| `costo_mp_unitario` | numeric, nullable | costo de material por pieza, tal cual FoxPro (DATA1110) |
+| `costo_mo_unitario` | numeric, nullable | costo de mano de obra por pieza, tal cual FoxPro |
+| `precio_unitario` | numeric, nullable | precio cotizado por pieza, tal cual FoxPro |
+| `importe` | numeric, nullable | `cantidad × precio_unitario` |
+
+Los importes solo se muestran a los roles con el permiso `ver_importes`
+(Oficina técnica, Contabilidad, Staff). El kiosco nunca recibe importes.
+
+### `planta_ref.clientes`
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `cliente_id` | integer | clave (código de FoxPro) |
+| `razon_social` | text | |
+| `cuit` | text, nullable | |
 
 ### `planta_ref.rutas`
 
@@ -104,6 +119,7 @@ materializados como vistas en el esquema `planta_ref`:
 | `maquinas` | `dim_maquina` | sin el miembro «desconocido» |
 | `pedidos_pendientes` | `mart_seguimiento_pedidos` | `cantidad_pendiente > 0` |
 | `cotizaciones_sin_pedido` | `mart_cotizaciones` | `estado_cotizacion = 'En espera'` |
+| `clientes` | `dim_cliente` | sin el miembro «desconocido» |
 | `rutas` | `int_rutas__numeradas` | sin preparaciones |
 | `ultima_publicacion` | source `raw._cargas` | `estado = 'ok'` |
 

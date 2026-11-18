@@ -312,6 +312,12 @@ class CotizacionSinPedido(models.Model):
     plano = models.TextField()
     plano_descripcion = models.TextField(null=True)
     cantidad = models.DecimalField(max_digits=12, decimal_places=2, null=True)
+    # Valores cotizados tal cual los guarda FoxPro, por pieza (pesos). Solo los ven
+    # los roles con el permiso `cuentas.ver_importes` (nunca los operarios).
+    costo_mp_unitario = models.DecimalField(max_digits=14, decimal_places=2, null=True)
+    costo_mo_unitario = models.DecimalField(max_digits=14, decimal_places=2, null=True)
+    precio_unitario = models.DecimalField(max_digits=14, decimal_places=2, null=True)
+    importe = models.DecimalField(max_digits=16, decimal_places=2, null=True)
 
     class Meta:
         managed = False
@@ -320,6 +326,22 @@ class CotizacionSinPedido(models.Model):
 
     def __str__(self) -> str:
         return f"Cotización {self.cotizacion_id} - {self.plano}"
+
+
+class Cliente(models.Model):
+    """Cliente de FoxPro (publicado por dbt en `planta_ref.clientes`)."""
+
+    cliente_id = models.IntegerField(primary_key=True)
+    razon_social = models.TextField()
+    cuit = models.TextField(null=True)
+
+    class Meta:
+        managed = False
+        db_table = "clientes"
+        ordering = ["razon_social"]
+
+    def __str__(self) -> str:
+        return self.razon_social
 
 
 class Ruta(models.Model):

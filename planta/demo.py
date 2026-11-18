@@ -21,10 +21,10 @@ MAQUINAS = [
 ]
 
 CLIENTES = [
-    (1, "Metalúrgica Andina SA"),
-    (2, "Hidráulica del Litoral SRL"),
-    (3, "Agromáquinas Pampa SA"),
-    (4, "Bombas Patagónicas SA"),
+    (1, "Metalúrgica Andina SA", "30-00000001-1"),
+    (2, "Hidráulica del Litoral SRL", "30-00000002-2"),
+    (3, "Agromáquinas Pampa SA", "30-00000003-3"),
+    (4, "Bombas Patagónicas SA", "30-00000004-4"),
 ]
 
 PLANOS = [
@@ -68,11 +68,12 @@ def _pedidos(hoy: date):
 
 
 def _cotizaciones(hoy: date):
-    # (cotizacion, renglon, dias_atras, cliente, plano, cantidad, tiene_pedido)
+    # (cotizacion, renglon, dias_atras, cliente, plano, cantidad, tiene_pedido,
+    #  costo_mp, costo_mo, precio unitario) -- importes ficticios
     return [
-        (2101, 1, 3, 2, "SEP-08", 300, False),
-        (2101, 2, 3, 2, "BJ-100", 50, False),
-        (2102, 1, 15, 4, "EJ-220/A", 10, True),  # ya tiene pedido: no aparece
+        (2101, 1, 3, 2, "SEP-08", 300, False, 120, 85, 310),
+        (2101, 2, 3, 2, "BJ-100", 50, False, 2400, 1900, 6100),
+        (2102, 1, 15, 4, "EJ-220/A", 10, True, 9800, 7600, 25500),  # ya tiene pedido
     ]
 
 
@@ -86,7 +87,10 @@ def cargar_demo(hoy: date | None = None) -> dict[str, int]:
             " planta_demo.rutas, planta_demo.cargas"
         )
         cur.executemany("INSERT INTO planta_demo.maquinas VALUES (%s, %s, %s)", MAQUINAS)
-        cur.executemany("INSERT INTO planta_demo.clientes VALUES (%s, %s)", CLIENTES)
+        cur.executemany(
+            "INSERT INTO planta_demo.clientes (cliente_id, razon_social, cuit) VALUES (%s, %s, %s)",
+            CLIENTES,
+        )
         cur.executemany("INSERT INTO planta_demo.planos VALUES (%s, %s)", PLANOS)
         cur.executemany("INSERT INTO planta_demo.rutas VALUES (%s, %s, %s, %s, %s, %s)", RUTAS)
         cur.executemany(
@@ -97,10 +101,13 @@ def cargar_demo(hoy: date | None = None) -> dict[str, int]:
             ],
         )
         cur.executemany(
-            "INSERT INTO planta_demo.cotizaciones_lineas VALUES (%s, %s, %s, %s, %s, %s, %s)",
+            "INSERT INTO planta_demo.cotizaciones_lineas (cotizacion_id, renglon,"
+            " fecha_cotizacion, cliente_id, plano, cantidad, tiene_pedido,"
+            " costo_mp_unitario, costo_mo_unitario, precio_unitario)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             [
-                (co, r, hoy - timedelta(days=d), c, pl, q, tp)
-                for co, r, d, c, pl, q, tp in _cotizaciones(hoy)
+                (co, r, hoy - timedelta(days=d), c, pl, q, tp, mp, mo, pu)
+                for co, r, d, c, pl, q, tp, mp, mo, pu in _cotizaciones(hoy)
             ],
         )
         cur.execute("INSERT INTO planta_demo.cargas (fin) VALUES (now())")

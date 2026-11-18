@@ -7,6 +7,7 @@
     <a href="{% url 'oficina:pendientes' %}" {% if u == 'pendientes' %}aria-current="page"{% endif %}>Pendientes</a>
     <a href="{% url 'oficina:pedidos' %}" {% if u == 'pedidos' %}aria-current="page"{% endif %}>Pedidos</a>
     <a href="{% url 'oficina:cotizaciones' %}" {% if u == 'cotizaciones' %}aria-current="page"{% endif %}>Cotizaciones</a>
+    <a href="{% url 'oficina:clientes' %}" {% if u == 'clientes' or u == 'cliente' %}aria-current="page"{% endif %}>Clientes</a>
     <a href="{% url 'oficina:registros' %}" {% if u == 'registros' %}aria-current="page"{% endif %}>Registros</a>
     {% if perms.cuentas.cerrar_dia %}<a href="{% url 'oficina:cierre' %}" {% if u == 'cierre' %}aria-current="page"{% endif %}>Cierre del día</a>{% endif %}
     {% endwith %}

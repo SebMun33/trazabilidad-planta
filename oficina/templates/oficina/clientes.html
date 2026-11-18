@@ -1,0 +1,12 @@
+{% extends "oficina/base.html" %}
+{% block titulo %}Clientes · Trazabilidad de planta{% endblock %}
+{% block contenido %}
+<div class="encabezado"><h1>Clientes</h1></div>
+<form class="filtros" method="get" action="{% url 'oficina:clientes' %}"
+      hx-get="{% url 'oficina:clientes' %}" hx-target="#tabla" hx-trigger="input changed delay:300ms" hx-push-url="true">
+  <input type="search" name="q" value="{{ q }}" placeholder="Buscar por nombre, CUIT o número" aria-label="Buscar">
+  {% if todos %}<input type="hidden" name="todos" value="1">{% endif %}
+  <noscript><button class="boton">Buscar</button></noscript>
+</form>
+<div id="tabla">{% include "oficina/parciales/tabla_clientes.html" %}</div>
+{% endblock %}

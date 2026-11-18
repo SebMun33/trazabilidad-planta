@@ -41,13 +41,14 @@ def test_cada_rol_tiene_su_juego_de_permisos():
         return set(Group.objects.get(name=rol).permissions.values_list("codename", flat=True))
 
     assert permisos(OPERARIO) == {"registrar_avances", "escribir_notas"}
-    assert permisos(CONTABILIDAD) == {"ver_trabajos"}
+    assert permisos(CONTABILIDAD) == {"ver_trabajos", "ver_importes"}
     assert permisos(OFICINA_TECNICA) == {
         "ver_trabajos",
         "preparar_trabajos",
         "escribir_notas",
         "anular_registros",
         "cerrar_dia",
+        "ver_importes",
     }
     assert {"change_user", "ver_trabajos", "cerrar_dia"} <= permisos(STAFF)
 

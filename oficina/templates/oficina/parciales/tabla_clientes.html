@@ -1,0 +1,24 @@
+{% if not q %}
+<p class="aviso-antiguedad">{% if todos %}Se muestran todos los clientes. <a href="{% url 'oficina:clientes' %}">Ver solo los que tienen algo abierto</a>
+{% else %}Se muestran los clientes con pedidos, cotizaciones o trabajos abiertos. <a href="{% url 'oficina:clientes' %}?todos=1">Ver todos</a>{% endif %}</p>
+{% endif %}
+{% if filas %}
+<table class="tabla">
+  <thead><tr><th>N.º</th><th>Cliente</th><th>CUIT</th><th class="num">Pedidos con pendiente</th><th class="num">Cotizaciones en espera</th><th class="num">Trabajos en planta</th></tr></thead>
+  <tbody>
+  {% for c, n in filas %}
+    <tr>
+      <td>{{ c.cliente_id }}</td>
+      <td><a href="{% url 'oficina:cliente' c.cliente_id %}"><strong>{{ c.razon_social }}</strong></a></td>
+      <td>{{ c.cuit|default:"—" }}</td>
+      <td class="num">{{ n.pedidos|default:"—" }}</td>
+      <td class="num">{{ n.cotizaciones|default:"—" }}</td>
+      <td class="num">{{ n.trabajos|default:"—" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if filas|length >= limite %}<p class="suave">Se muestran los primeros {{ limite }}. Usá la búsqueda para acotar.</p>{% endif %}
+{% else %}
+<p class="vacio">No hay clientes{% if q %} para «{{ q }}»{% endif %}.</p>
+{% endif %}

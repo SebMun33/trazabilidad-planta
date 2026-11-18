@@ -386,3 +386,55 @@ def test_formulario_invalido_avisa_arriba(oficina, demo):
     assert respuesta.status_code == 200
     assert "No se pudo guardar: revisá los campos marcados" in respuesta.content.decode()
     assert not TrabajoRevision.objects.exists()
+
+
+# --- importes y clientes ---------------------------------------------------------
+def test_cotizaciones_muestran_los_importes_de_foxpro(oficina, demo):
+    html = oficina.get(reverse("oficina:cotizaciones")).content.decode()
+    # SEP-08: 300 piezas a $ 310 (costo MP 120, MO 85) -> importe $ 93.000
+    assert "Precio unit." in html and "$ 310,00" in html and "$ 93.000,00" in html
+    assert "$ 120,00" in html and "$ 85,00" in html
+    preparar = oficina.get(reverse("oficina:trabajo_nuevo") + "?origen=cotizacion&ref=2101-1")
+    assert "$ 310,00 por pieza" in preparar.content.decode()
+
+
+def test_sin_permiso_de_importes_no_se_ve_plata(client, demo):
+    from django.contrib.auth.models import Permission
+
+    usuario = _usuario("mira", "contabilidad")
+    usuario.user_permissions.add(Permission.objects.get(codename="ver_trabajos"))
+    usuario.groups.clear()
+    client.force_login(usuario)
+    html = client.get(reverse("oficina:cotizaciones")).content.decode()
+    assert "SEP-08" in html and "Precio unit." not in html and "$" not in html
+
+
+def test_contabilidad_ve_importes(contabilidad, demo):
+    assert "$ 93.000,00" in contabilidad.get(reverse("oficina:cotizaciones")).content.decode()
+
+
+def test_clientes_con_algo_abierto_y_detalle(oficina, demo):
+    crear_trabajo(
+        DatosTrabajo(plano="BJ-100", cliente_id=3, cliente_nombre="Agromáquinas Pampa SA"),
+        [DatosOperacion()],
+        "ofi",
+    )
+    lista = oficina.get(reverse("oficina:clientes")).content.decode()
+    assert "Metalúrgica Andina SA" in lista and "Hidráulica del Litoral SRL" in lista
+    todos = oficina.get(reverse("oficina:clientes"), {"todos": "1"}).content.decode()
+    assert "Bombas Patagónicas SA" in todos
+    buscado = oficina.get(reverse("oficina:clientes"), {"q": "30-00000002"}).content.decode()
+    assert "Hidráulica del Litoral SRL" in buscado and "Metalúrgica" not in buscado
+
+    detalle = oficina.get(reverse("oficina:cliente", args=[2])).content.decode()
+    assert "Hidráulica del Litoral SRL" in detalle and "PR 15-3" in detalle  # pedido 3002
+    assert "SEP-08" in detalle  # cotización 2101 en espera
+    pampa = oficina.get(reverse("oficina:cliente", args=[3])).content.decode()
+    assert "MZ-500 REV2" in pampa and "BJ-100" in pampa  # pedido y trabajo en planta
+    assert oficina.get(reverse("oficina:cliente", args=[999])).status_code == 404
+
+
+def test_montos_en_formato_argentino_aunque_el_navegador_pida_otro_idioma(oficina, demo):
+    for idioma in ("es", "en-US,en;q=0.9"):
+        html = oficina.get(reverse("oficina:cotizaciones"), HTTP_ACCEPT_LANGUAGE=idioma)
+        assert "$ 93.000,00" in html.content.decode(), idioma

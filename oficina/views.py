@@ -11,7 +11,14 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from planta.models import CotizacionSinPedido, Evento, Nota, PedidoPendiente, TrabajoRevision
+from planta.models import (
+    Cliente,
+    CotizacionSinPedido,
+    Evento,
+    Nota,
+    PedidoPendiente,
+    TrabajoRevision,
+)
 from planta.servicios import ReglaDeNegocioError
 from planta.servicios import estado as est
 from planta.servicios import notas as notas_srv
@@ -168,6 +175,69 @@ def cotizaciones(request):
         campo_numero="cotizacion_id",
         tabla="tabla_cotizaciones.html",
         titulo="Cotizaciones sin pedido",
+    )
+
+
+# --- clientes ------------------------------------------------------------------
+def _abierto_por_cliente() -> dict:
+    """{cliente_id: {"pedidos": n, "cotizaciones": n, "trabajos": n}} de lo abierto."""
+    conteo: dict = {}
+
+    def sumar(cliente_id, clave):
+        if cliente_id is not None:
+            fila = conteo.setdefault(cliente_id, {"pedidos": 0, "cotizaciones": 0, "trabajos": 0})
+            fila[clave] += 1
+
+    for cliente_id in PedidoPendiente.objects.values_list("cliente_id", flat=True):
+        sumar(cliente_id, "pedidos")
+    for cliente_id in CotizacionSinPedido.objects.values_list("cliente_id", flat=True):
+        sumar(cliente_id, "cotizaciones")
+    for t in est.estado_trabajos(solo_activos=True):
+        sumar(t.revision.cliente_id, "trabajos")
+    return conteo
+
+
+@requiere_ver
+def clientes(request):
+    texto = request.GET.get("q", "").strip()
+    todos = request.GET.get("todos") == "1"
+    abierto = _abierto_por_cliente()
+    qs = Cliente.objects.all()
+    if texto:
+        filtro = Q(razon_social__icontains=texto) | Q(cuit__icontains=texto)
+        if texto.isdigit():
+            filtro |= Q(cliente_id=int(texto))
+        qs = qs.filter(filtro)
+    elif not todos:
+        # Por defecto, solo los clientes con algo abierto.
+        qs = qs.filter(cliente_id__in=list(abierto))
+    vacio = {"pedidos": 0, "cotizaciones": 0, "trabajos": 0}
+    filas = [(c, abierto.get(c.cliente_id, vacio)) for c in qs[:LIMITE_LISTADO]]
+    contexto = {"filas": filas, "q": texto, "todos": todos, "limite": LIMITE_LISTADO}
+    if request.htmx:
+        return render(request, "oficina/parciales/tabla_clientes.html", contexto)
+    return render(request, "oficina/clientes.html", contexto)
+
+
+@requiere_ver
+def cliente_detalle(request, cliente_id):
+    cliente = Cliente.objects.filter(cliente_id=cliente_id).first()
+    if cliente is None:
+        raise Http404("El cliente no existe.")
+    trabajos = [
+        t for t in est.estado_trabajos() if t.revision.cliente_id == cliente_id and t.activo
+    ]
+    return render(
+        request,
+        "oficina/cliente.html",
+        {
+            "cliente": cliente,
+            "pedidos": list(PedidoPendiente.objects.filter(cliente_id=cliente_id)),
+            "cotizaciones": list(CotizacionSinPedido.objects.filter(cliente_id=cliente_id)),
+            "trabajos": trabajos,
+            "con_trabajo": est.refs_con_trabajo_activo(),
+            "limite": LIMITE_LISTADO,
+        },
     )
 
 
