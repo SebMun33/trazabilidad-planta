@@ -11,7 +11,7 @@
       <td><strong>{{ c.plano }}</strong>{% if c.plano_descripcion %}<br><span class="suave">{{ c.plano_descripcion }}</span>{% endif %}</td>
       <td class="num">{{ c.cantidad|floatformat:"-2" }}</td>
       <td>{% if con_trabajo|contiene:c.pk %}<span class="estado e-en_cola">En pendientes</span>
-          {% else %}<a class="boton" href="{% url 'oficina:trabajo_nuevo' %}?origen=cotizacion&amp;ref={{ c.pk|urlencode }}">Preparar</a>{% endif %}</td>
+          {% elif perms.cuentas.preparar_trabajos %}<a class="boton" href="{% url 'oficina:trabajo_nuevo' %}?origen=cotizacion&amp;ref={{ c.pk|urlencode }}">Preparar</a>{% endif %}</td>
     </tr>
   {% endfor %}
   </tbody>

@@ -32,7 +32,12 @@ from planta.servicios.trabajos import (
 )
 
 from .forms import MotivoForm, OperacionFormSet, TrabajoForm, opciones_maquina
-from .permisos import requiere_oficina, requiere_supervisor
+from .permisos import (
+    requiere_anular,
+    requiere_cierre,
+    requiere_preparar,
+    requiere_ver,
+)
 
 LIMITE_LISTADO = 200
 # FoxPro tiene renglones de pedido que nunca se cerraron (entregas sin cargar):
@@ -69,7 +74,7 @@ def _volver_seguro(request, destino: str | None, por_defecto: str) -> str:
 
 
 # --- lista de pendientes -----------------------------------------------------
-@requiere_oficina
+@requiere_ver
 def pendientes(request):
     filtro = request.GET.get("estado", "activos")
     if filtro not in FILTROS_ESTADO:
@@ -133,7 +138,7 @@ def _listado_origen(
     return render(request, "oficina/origen.html", contexto)
 
 
-@requiere_oficina
+@requiere_ver
 def pedidos(request):
     return _listado_origen(
         request,
@@ -146,7 +151,7 @@ def pedidos(request):
     )
 
 
-@requiere_oficina
+@requiere_ver
 def cotizaciones(request):
     return _listado_origen(
         request,
@@ -309,7 +314,7 @@ def _render_preparar(request, contexto):
     return render(request, "oficina/preparar.html", contexto)
 
 
-@requiere_oficina
+@requiere_preparar
 def trabajo_nuevo(request):
     origen = request.GET.get("origen", TrabajoRevision.Origen.MANUAL)
     datos, extra = _datos_desde_origen(origen, request.GET.get("ref"))
@@ -352,7 +357,7 @@ def _estado_o_404(trabajo_id) -> est.EstadoTrabajo:
     return estado
 
 
-@requiere_oficina
+@requiere_ver
 def trabajo_detalle(request, trabajo_id):
     estado = _estado_o_404(trabajo_id)
     eventos = list(
@@ -375,7 +380,7 @@ def trabajo_detalle(request, trabajo_id):
     )
 
 
-@requiere_oficina
+@requiere_preparar
 def trabajo_revisar(request, trabajo_id):
     estado = _estado_o_404(trabajo_id)
     actual = estado.revision
@@ -430,7 +435,7 @@ def trabajo_revisar(request, trabajo_id):
     )
 
 
-@requiere_oficina
+@requiere_preparar
 @require_POST
 def trabajo_retirar(request, trabajo_id):
     form = MotivoForm(request.POST)
@@ -445,7 +450,7 @@ def trabajo_retirar(request, trabajo_id):
 
 
 # --- registros del día y anulaciones -----------------------------------------
-@requiere_oficina
+@requiere_ver
 def registros(request):
     fecha = _fecha_param(request)
     eventos = list(eventos_del_dia(fecha))
@@ -462,7 +467,7 @@ def registros(request):
     )
 
 
-@requiere_oficina
+@requiere_anular
 @require_POST
 def evento_anular(request, evento_id):
     form = MotivoForm(request.POST)
@@ -479,7 +484,7 @@ def evento_anular(request, evento_id):
 
 
 # --- cierre del día (supervisor) ---------------------------------------------
-@requiere_supervisor
+@requiere_cierre
 def cierre(request):
     if request.method == "POST":
         try:

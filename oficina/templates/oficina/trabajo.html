@@ -8,7 +8,7 @@
     <h1>{{ r.plano }} <span class="estado e-{{ t.estado }}">{{ t.etiqueta }}</span></h1>
     {% if r.plano_descripcion %}<p class="suave">{{ r.plano_descripcion }}</p>{% endif %}
   </div>
-  {% if t.estado != "retirado" %}
+  {% if t.estado != "retirado" and perms.cuentas.preparar_trabajos %}
   <div class="acciones-encabezado">
     <a class="boton boton-primario" href="{% url 'oficina:trabajo_revisar' t.trabajo_id %}">Revisar</a>
   </div>
@@ -56,7 +56,7 @@
       <td>{% if op %}{{ op.operacion.operacion_nro }}{% else %}<span class="suave">quitada</span>{% endif %}</td>
       <td>{{ e.operario|default:"—" }}</td>
       <td>{{ e.observaciones|default:"" }}</td>
-      <td>{% if e.tipo != "anulacion" and e.evento_id not in anulados %}
+      <td>{% if e.tipo != "anulacion" and e.evento_id not in anulados and perms.cuentas.anular_registros %}
         <form method="post" action="{% url 'oficina:evento_anular' e.evento_id %}" class="en-linea">
           {% csrf_token %}<input type="hidden" name="volver" value="{{ request.get_full_path }}">
           <input name="motivo" placeholder="Motivo" aria-label="Motivo de la anulación">
@@ -82,7 +82,7 @@
   </tbody>
 </table>
 
-{% if t.estado != "retirado" %}
+{% if t.estado != "retirado" and perms.cuentas.preparar_trabajos %}
 <details class="zona-peligro">
   <summary>Retirar de la lista de pendientes</summary>
   <form method="post" action="{% url 'oficina:trabajo_retirar' t.trabajo_id %}">

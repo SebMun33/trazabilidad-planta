@@ -1,5 +1,5 @@
 import pytest
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.db import OperationalError
 from django.test import RequestFactory
@@ -31,10 +31,6 @@ def test_seed_demo_es_idempotente():
     assert UltimaPublicacion.objects.get().publicado_en is not None
 
 
-def test_grupos_creados_por_migracion():
-    assert set(Group.objects.values_list("name", flat=True)) >= {"oficina", "supervisor"}
-
-
 @pytest.fixture
 def cliente_admin(client):
     usuario = User.objects.create_superuser("admin", password="x")
@@ -48,9 +44,11 @@ def test_admin_eventos_solo_lectura(cliente_admin):
     assert not Evento.objects.exists()
 
 
-def test_admin_operarios_editable_sin_borrar(cliente_admin):
-    operario = Operario.objects.create(nombre="Para editar")
-    assert cliente_admin.get(reverse("admin:planta_operario_add")).status_code == 200
+def test_admin_operarios_solo_lectura(cliente_admin):
+    # Los operarios se crean como usuarios con rol Operario (ver cuentas).
+    operario = Operario.objects.create(nombre="Para ver")
+    assert cliente_admin.get(reverse("admin:planta_operario_changelist")).status_code == 200
+    assert cliente_admin.get(reverse("admin:planta_operario_add")).status_code == 403
     respuesta = cliente_admin.get(reverse("admin:planta_operario_delete", args=[operario.pk]))
     assert respuesta.status_code == 403
 

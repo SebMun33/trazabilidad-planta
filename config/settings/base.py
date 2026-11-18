@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "django_htmx",
+    "cuentas",
     "planta",
     "oficina",
     "kiosco",

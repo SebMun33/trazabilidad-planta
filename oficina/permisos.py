@@ -1,30 +1,23 @@
-"""Acceso por grupo: `oficina` prepara pendientes; `supervisor` además cierra el día."""
+"""Acceso a las pantallas de oficina por permiso (cada rol trae su juego).
+
+Ver cuentas/roles.py: Oficina técnica prepara, anula y cierra; Contabilidad
+solo mira; Staff y el superusuario pueden todo.
+"""
 
 from functools import wraps
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 
-GRUPO_OFICINA = "oficina"
-GRUPO_SUPERVISOR = "supervisor"
 
-
-def pertenece(usuario, *grupos: str) -> bool:
-    if not usuario.is_authenticated:
-        return False
-    if usuario.is_superuser:
-        return True
-    return usuario.groups.filter(name__in=grupos).exists()
-
-
-def requiere_grupo(*grupos: str):
-    """Exige login y pertenecer a alguno de los grupos (los superusuarios pasan)."""
+def requiere_permiso(codename: str):
+    """Exige login y el permiso `cuentas.<codename>`."""
 
     def decorador(vista):
         @login_required
         @wraps(vista)
         def envoltura(request, *args, **kwargs):
-            if not pertenece(request.user, *grupos):
+            if not request.user.has_perm(f"cuentas.{codename}"):
                 raise PermissionDenied
             return vista(request, *args, **kwargs)
 
@@ -33,5 +26,8 @@ def requiere_grupo(*grupos: str):
     return decorador
 
 
-requiere_oficina = requiere_grupo(GRUPO_OFICINA, GRUPO_SUPERVISOR)
-requiere_supervisor = requiere_grupo(GRUPO_SUPERVISOR)
+requiere_ver = requiere_permiso("ver_trabajos")
+requiere_preparar = requiere_permiso("preparar_trabajos")
+requiere_notas = requiere_permiso("escribir_notas")
+requiere_anular = requiere_permiso("anular_registros")
+requiere_cierre = requiere_permiso("cerrar_dia")

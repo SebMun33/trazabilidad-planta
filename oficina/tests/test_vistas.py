@@ -22,13 +22,20 @@ def _usuario(nombre, *grupos):
 
 @pytest.fixture
 def oficina(client):
-    client.force_login(_usuario("ofi", "oficina"))
+    client.force_login(_usuario("ofi", "oficina_tecnica"))
     return client
 
 
 @pytest.fixture
 def supervisor(client):
-    client.force_login(_usuario("sup", "supervisor"))
+    # Anular registros y cerrar el día ahora es parte de Oficina técnica.
+    client.force_login(_usuario("sup", "oficina_tecnica"))
+    return client
+
+
+@pytest.fixture
+def contabilidad(client):
+    client.force_login(_usuario("conta", "contabilidad"))
     return client
 
 
@@ -61,27 +68,51 @@ def test_usuario_sin_grupo_no_entra(client):
     assert client.get(reverse("oficina:pendientes")).status_code == 403
 
 
-def test_oficina_no_cierra_el_dia(oficina):
-    assert oficina.get(reverse("oficina:pendientes")).status_code == 200
-    assert oficina.get(reverse("oficina:cierre")).status_code == 403
-
-
-def test_supervisor_ve_todo(supervisor, demo):
+def test_oficina_tecnica_ve_todo(oficina, demo):
     for nombre in [
         "oficina:pendientes",
         "oficina:pedidos",
         "oficina:cotizaciones",
         "oficina:registros",
         "oficina:cierre",
+        "oficina:trabajo_nuevo",
     ]:
-        assert supervisor.get(reverse(nombre)).status_code == 200, nombre
+        assert oficina.get(reverse(nombre)).status_code == 200, nombre
 
 
-def test_login_con_usuario_y_clave(client):
-    _usuario("ana", "oficina")
-    respuesta = client.post(reverse("login"), {"username": "ana", "password": "clave-de-prueba"})
-    assert respuesta.status_code == 302
-    assert respuesta.url == reverse("oficina:pendientes")
+def test_contabilidad_solo_lee(contabilidad, demo):
+    revision = crear_trabajo(DatosTrabajo(plano="C-1"), [DatosOperacion()], "ofi")
+    for nombre, args in [
+        ("oficina:pendientes", []),
+        ("oficina:pedidos", []),
+        ("oficina:registros", []),
+        ("oficina:trabajo", [revision.trabajo_id]),
+    ]:
+        assert contabilidad.get(reverse(nombre, args=args)).status_code == 200, nombre
+    for nombre, args in [
+        ("oficina:trabajo_nuevo", []),
+        ("oficina:trabajo_revisar", [revision.trabajo_id]),
+        ("oficina:cierre", []),
+    ]:
+        assert contabilidad.get(reverse(nombre, args=args)).status_code == 403, nombre
+    retirar = contabilidad.post(reverse("oficina:trabajo_retirar", args=[revision.trabajo_id]))
+    assert retirar.status_code == 403
+    # Sin botones de acción.
+    pedidos = contabilidad.get(reverse("oficina:pedidos")).content.decode()
+    assert "Preparar" not in pedidos
+    detalle = contabilidad.get(reverse("oficina:trabajo", args=[revision.trabajo_id]))
+    assert "Revisar" not in detalle.content.decode()
+    assert "Retirar trabajo" not in detalle.content.decode()
+
+
+def test_staff_ve_todo_y_el_admin(client, demo):
+    from cuentas.roles import STAFF, asignar_rol
+
+    usuario = User.objects.create_user("jefa", password="clave-de-prueba")
+    asignar_rol(usuario, STAFF)
+    client.force_login(usuario)
+    assert client.get(reverse("oficina:cierre")).status_code == 200
+    assert client.get(reverse("admin:index")).status_code == 200
 
 
 # --- orígenes ----------------------------------------------------------------

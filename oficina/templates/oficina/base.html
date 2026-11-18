@@ -8,11 +8,12 @@
     <a href="{% url 'oficina:pedidos' %}" {% if u == 'pedidos' %}aria-current="page"{% endif %}>Pedidos</a>
     <a href="{% url 'oficina:cotizaciones' %}" {% if u == 'cotizaciones' %}aria-current="page"{% endif %}>Cotizaciones</a>
     <a href="{% url 'oficina:registros' %}" {% if u == 'registros' %}aria-current="page"{% endif %}>Registros</a>
-    {% if es_supervisor %}<a href="{% url 'oficina:cierre' %}" {% if u == 'cierre' %}aria-current="page"{% endif %}>Cierre del día</a>{% endif %}
+    {% if perms.cuentas.cerrar_dia %}<a href="{% url 'oficina:cierre' %}" {% if u == 'cierre' %}aria-current="page"{% endif %}>Cierre del día</a>{% endif %}
     {% endwith %}
   </nav>
   <div class="usuario">
-    <span>{{ request.user.get_username }}</span>
+    <span>{{ request.user.get_username }} <span class="suave">· {{ rol_etiqueta }}</span></span>
+    {% if request.user.is_staff %}<a href="{% url 'admin:index' %}">Admin</a>{% endif %}
     <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="boton-link">Salir</button></form>
   </div>
 </header>

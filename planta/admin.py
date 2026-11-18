@@ -2,7 +2,8 @@
 
 Las tablas de `planta` son de solo agregar filas: en el admin se pueden ver,
 pero no editar ni borrar. Las altas y correcciones se hacen desde las pantallas
-de la app (que generan filas nuevas). Solo `Operario` es editable.
+de la app (que generan filas nuevas). Los operarios salen de los usuarios con rol
+Operario (Cuentas → Usuarios); acá solo se consultan.
 """
 
 from django.contrib import admin
@@ -22,14 +23,11 @@ class SoloLecturaAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.Operario)
-class OperarioAdmin(admin.ModelAdmin):
-    list_display = ["nombre", "activo", "creado_en"]
+class OperarioAdmin(SoloLecturaAdmin):
+    list_display = ["nombre", "activo", "usuario_id", "creado_en"]
     list_filter = ["activo"]
     search_fields = ["nombre"]
     actions = None
-
-    def has_delete_permission(self, request, obj=None):
-        return False
 
 
 class TrabajoOperacionInline(admin.TabularInline):

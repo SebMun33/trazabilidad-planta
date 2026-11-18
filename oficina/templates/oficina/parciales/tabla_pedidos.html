@@ -21,7 +21,7 @@
       <td class="num">{{ p.cantidad_entregada|floatformat:"-2" }}</td>
       <td class="num"><strong>{{ p.cantidad_pendiente|floatformat:"-2" }}</strong></td>
       <td>{% if con_trabajo|contiene:p.pk %}<span class="estado e-en_cola">En pendientes</span>
-          {% else %}<a class="boton" href="{% url 'oficina:trabajo_nuevo' %}?origen=pedido&amp;ref={{ p.pk|urlencode }}">Preparar</a>{% endif %}</td>
+          {% elif perms.cuentas.preparar_trabajos %}<a class="boton" href="{% url 'oficina:trabajo_nuevo' %}?origen=pedido&amp;ref={{ p.pk|urlencode }}">Preparar</a>{% endif %}</td>
     </tr>
   {% endfor %}
   </tbody>

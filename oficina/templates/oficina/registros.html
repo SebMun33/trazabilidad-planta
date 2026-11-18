@@ -31,7 +31,7 @@
       <td>{{ e.operario|default:"—" }}</td>
       <td>{{ e.maquina_id|default:"—" }}</td>
       <td>{{ e.observaciones|default:"" }}</td>
-      <td>{% if e.tipo != "anulacion" and e.evento_id not in resumen.anulados and not resumen.cerrado %}
+      <td>{% if e.tipo != "anulacion" and e.evento_id not in resumen.anulados and not resumen.cerrado and perms.cuentas.anular_registros %}
         <form method="post" action="{% url 'oficina:evento_anular' e.evento_id %}" class="en-linea">
           {% csrf_token %}<input type="hidden" name="volver" value="{{ request.get_full_path }}">
           <input name="motivo" placeholder="Motivo" aria-label="Motivo de la anulación">

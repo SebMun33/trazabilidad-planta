@@ -25,11 +25,15 @@ class Urgencia(models.IntegerChoices):
 # planta (registro original)
 # =============================================================================
 class Operario(models.Model):
-    """Maestro de operarios. Única tabla de `planta` que admite UPDATE (nombre, activo)."""
+    """Maestro de operarios. Única tabla de `planta` que admite UPDATE (nombre, activo, usuario).
+
+    Se mantiene a partir de los usuarios con rol Operario (ver cuentas/senales.py).
+    """
 
     operario_id = models.AutoField(primary_key=True)
     nombre = models.TextField(unique=True)
     activo = models.BooleanField(default=True)
+    usuario_id = models.IntegerField(null=True, blank=True, unique=True)
     creado_en = models.DateTimeField(db_default=Now(), editable=False)
 
     class Meta:
@@ -179,6 +183,55 @@ class Evento(models.Model):
 
     def __str__(self) -> str:
         return f"{self.get_tipo_display()} {self.ocurrido_en:%d/%m %H:%M}"
+
+
+class Nota(models.Model):
+    """Observación, sugerencia, pregunta o respuesta sobre un trabajo u operación."""
+
+    class Tipo(models.TextChoices):
+        OBSERVACION = "observacion", "Observación"
+        SUGERENCIA = "sugerencia", "Sugerencia"
+        PREGUNTA = "pregunta", "Pregunta"
+        RESPUESTA = "respuesta", "Respuesta"
+
+    # El id lo genera la app antes de grabar: el envío desde el kiosco es idempotente.
+    nota_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    trabajo = models.ForeignKey(
+        Trabajo, on_delete=models.DO_NOTHING, db_column="trabajo_id", related_name="notas"
+    )
+    operacion_id = models.UUIDField(null=True, blank=True)
+    tipo = models.TextField(choices=Tipo.choices)
+    texto = models.TextField()
+    responde_a = models.ForeignKey(
+        "self",
+        on_delete=models.DO_NOTHING,
+        db_column="responde_a",
+        null=True,
+        blank=True,
+        related_name="respuestas",
+    )
+    autor = models.TextField()
+    operario = models.ForeignKey(
+        Operario,
+        on_delete=models.DO_NOTHING,
+        db_column="operario_id",
+        null=True,
+        blank=True,
+        related_name="notas",
+    )
+    usuario_id = models.IntegerField(null=True, blank=True)
+    escrita_en = models.DateTimeField()
+    registrada_en = models.DateTimeField(db_default=Now(), editable=False)
+    dispositivo = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = "nota"
+        ordering = ["escrita_en", "registrada_en"]
+        verbose_name_plural = "notas"
+
+    def __str__(self) -> str:
+        return f"{self.get_tipo_display()} de {self.autor}"
 
 
 class CierreDia(models.Model):

@@ -3,7 +3,7 @@
 {% block contenido %}
 <div class="encabezado">
   <h1>Lista de pendientes</h1>
-  <a class="boton boton-primario" href="{% url 'oficina:trabajo_nuevo' %}?origen=manual">+ Trabajo manual</a>
+  {% if perms.cuentas.preparar_trabajos %}<a class="boton boton-primario" href="{% url 'oficina:trabajo_nuevo' %}?origen=manual">+ Trabajo manual</a>{% endif %}
 </div>
 <form class="filtros" method="get" action="{% url 'oficina:pendientes' %}"
       hx-get="{% url 'oficina:pendientes' %}" hx-target="#tabla" hx-push-url="true"

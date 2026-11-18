@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Ingresar · Trazabilidad de planta{% endblock %}
+{% block cuerpo %}
+<main class="login">
+  <form method="post" class="tarjeta" action="{% url 'login' %}">
+    {% csrf_token %}
+    <h1>Trazabilidad de planta</h1>
+    {% if error %}<p class="alerta alerta-error" role="alert">{{ error }}</p>{% endif %}
+    {% if pedir_contrasena %}
+      <p>Hola, <strong>{{ nombre }}</strong>. <a href="{% url 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">No soy yo</a></p>
+      <input type="hidden" name="nombre" value="{{ nombre }}">
+      <label>Contraseña
+        <input type="password" name="contrasena" autocomplete="current-password" required autofocus>
+      </label>
+      <button type="submit" class="boton boton-primario">Ingresar</button>
+    {% else %}
+      <p class="suave">Escribí tu nombre de usuario.</p>
+      <label>Nombre
+        <input name="nombre" value="{{ nombre|default:'' }}" autocomplete="username" autocapitalize="none" required autofocus>
+      </label>
+      <button type="submit" class="boton boton-primario">Seguir</button>
+    {% endif %}
+    <input type="hidden" name="next" value="{{ next }}">
+  </form>
+</main>
+{% endblock %}
