@@ -130,11 +130,13 @@ def kiosco_en_uso() -> bool:
     return actividad is not None and actividad.ultima >= limite
 
 
-def copia_vencida() -> bool:
+def copia_vencida(segundos: int | None = None) -> bool:
+    """La copia local tiene más de `segundos` (por defecto, KIOSCO_COPIA_CADA)."""
     foto = Foto.objects.filter(id=1).first()
     if foto is None:
         return True
-    return timezone.now() - foto.obtenida_en >= timedelta(seconds=settings.KIOSCO_COPIA_CADA)
+    limite = timedelta(seconds=settings.KIOSCO_COPIA_CADA if segundos is None else segundos)
+    return timezone.now() - foto.obtenida_en >= limite
 
 
 def renovar_copia() -> None:

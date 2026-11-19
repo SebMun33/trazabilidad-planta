@@ -177,5 +177,7 @@ KIOSCO_COPIA_VIEJA_SEGUNDOS = env.int("KIOSCO_COPIA_VIEJA_SEGUNDOS", default=120
 # segundos; si nadie lo usa hace KIOSCO_ACTIVO_MINUTOS, no se consulta a Neon.
 KIOSCO_COPIA_CADA = env.int("KIOSCO_COPIA_CADA", default=60)
 KIOSCO_ACTIVO_MINUTOS = env.int("KIOSCO_ACTIVO_MINUTOS", default=10)
+# Modo prueba del superusuario (en la nube): renovar la copia como mucho cada N s.
+KIOSCO_PRUEBA_COPIA_CADA = env.int("KIOSCO_PRUEBA_COPIA_CADA", default=30)
 # Sin actividad, vuelve a la pantalla de elegir operario.
 KIOSCO_INACTIVIDAD_SEGUNDOS = env.int("KIOSCO_INACTIVIDAD_SEGUNDOS", default=120)

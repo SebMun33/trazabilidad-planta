@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from cuentas.prueba import DISPOSITIVO_PRUEBA, SESION_PRUEBA, operario_prueba_id
 from cuentas.roles import OPERARIO, STAFF, asignar_rol, rol_de
-from kiosco.models import EventoPendiente
+from kiosco.models import EventoPendiente, Foto
 from kiosco.sincronizacion import sincronizar
 from planta.models import Evento, Operario
 from planta.servicios import estado as est
@@ -205,3 +205,33 @@ def test_el_boton_solo_lo_ve_el_superusuario(escenario, sudo, client):
     asignar_rol(jefa, STAFF)
     client.force_login(jefa)
     assert "Probar como operario" not in client.get(url).content.decode()
+
+
+# --- liviano ----------------------------------------------------------------------------
+def test_la_copia_se_renueva_cada_30_segundos_o_al_pedirlo(escenario, en_prueba, settings):
+    prueba_id = operario_prueba_id()
+    url = reverse("kiosco:pendientes", args=[prueba_id])
+    en_prueba.get(url)
+    copia = Foto.objects.get().obtenida_en
+
+    # Un trabajo nuevo de oficina no aparece hasta que vence la copia...
+    crear_trabajo(DatosTrabajo(plano="NUEVO-9"), [DatosOperacion(descripcion="Cortar")], "ofi")
+    assert "NUEVO-9" not in en_prueba.get(url).content.decode()
+    assert Foto.objects.get().obtenida_en == copia
+
+    # ...o hasta tocar «Actualizar lista».
+    assert "NUEVO-9" in en_prueba.get(url + "?actualizar=1").content.decode()
+    settings.KIOSCO_PRUEBA_COPIA_CADA = 0
+    en_prueba.get(url)
+    assert Foto.objects.get().obtenida_en > copia
+
+
+def test_lo_registrado_se_ve_sin_renovar_la_copia(escenario, en_prueba):
+    prueba_id = operario_prueba_id()
+    en_prueba.get(reverse("kiosco:pendientes", args=[prueba_id]))
+    copia = Foto.objects.get().obtenida_en
+    en_prueba.post(_url_op(escenario, prueba_id), {"accion": "empezado", "maquina_id": "101"})
+    pantalla = en_prueba.get(_url_op(escenario, prueba_id)).content.decode()
+    assert "Terminé" in pantalla  # ya figura empezada
+    assert Foto.objects.get().obtenida_en == copia
+    assert Evento.objects.filter(operario_id=prueba_id).exists()  # y ya se envió

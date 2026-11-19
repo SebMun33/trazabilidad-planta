@@ -232,3 +232,5 @@ kbd {
   padding: .6rem 1.25rem; background: var(--aviso-fondo); color: var(--aviso);
   border-bottom: 2px dashed var(--aviso);
 }
+.k-prueba-acciones { display: flex; gap: .5rem; align-items: center; }
+.k-prueba-acciones form { margin: 0; }

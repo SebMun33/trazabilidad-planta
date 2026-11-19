@@ -30,7 +30,9 @@ sincronizan con el código después de cada `migrate`.
 **Probar como operario.** El superusuario tiene un botón que abre el kiosco en
 otra pestaña como el usuario «operario» (se crea la primera vez, sin
 contraseña). En la nube el kiosco solo responde en este modo; como ahí no corre
-el proceso de sincronización, se sincroniza dentro de cada pedido. Ese usuario
+el proceso de sincronización, se sincroniza dentro de cada pedido: lo
+registrado se envía en el momento y la lista se trae de nuevo cada 30 s o con
+«Actualizar lista». Ese usuario
 está oculto para todos menos el superusuario (admin y kiosco de planta). Lo que
 registra va a la base real con `dispositivo = 'prueba'` y se muestra marcado
 «prueba»; «Deshacer pruebas» anula todos sus registros de una vez. En los

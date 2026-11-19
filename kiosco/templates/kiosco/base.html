@@ -5,7 +5,10 @@
 {% if prueba %}
 <div class="k-prueba" role="status">
   <span><strong>Modo prueba</strong> · Estás como «operario». Lo que registres va a la base real, marcado como prueba.</span>
-  <form method="post" action="{% url 'oficina:prueba_salir' %}">{% csrf_token %}<button class="boton">Salir del modo prueba</button></form>
+  <span class="k-prueba-acciones">
+    <a class="boton" href="?actualizar=1" title="Trae ya los cambios de la oficina (si no, cada 30 s)">Actualizar lista</a>
+    <form method="post" action="{% url 'oficina:prueba_salir' %}">{% csrf_token %}<button class="boton">Salir del modo prueba</button></form>
+  </span>
 </div>
 {% endif %}
 <div class="kiosco" data-inactividad="{{ inactividad }}" data-inicio="{% url 'kiosco:inicio' %}">

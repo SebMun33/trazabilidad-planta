@@ -627,7 +627,8 @@ def prueba_entrar(request):
     """Crea (si hace falta) el usuario «operario» y abre el kiosco en modo prueba."""
     prueba.usuario_prueba(crear=True)
     request.session[prueba.SESION_PRUEBA] = True
-    return redirect("kiosco:inicio")
+    # Al entrar se trae la lista al día (y al usuario «operario», si es nuevo).
+    return redirect(reverse("kiosco:inicio") + "?actualizar=1")
 
 
 @require_POST

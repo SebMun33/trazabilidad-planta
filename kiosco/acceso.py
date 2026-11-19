@@ -3,8 +3,11 @@
 - **Kiosco de planta:** sin contraseña, pero solo desde la misma PC (IP local).
 - **Modo prueba:** el superusuario, desde la oficina, entra como el usuario
   «operario» (ver `cuentas/prueba.py`). Como en la nube no corre el proceso de
-  sincronización, en este modo se sincroniza dentro del mismo pedido: la copia
-  se renueva antes de mostrar y lo registrado se envía en el momento.
+  sincronización, en este modo se sincroniza dentro del mismo pedido: lo
+  registrado se envía en el momento, y la copia se renueva solo si tiene más de
+  KIOSCO_PRUEBA_COPIA_CADA segundos o se pide con «Actualizar lista»
+  (`?actualizar=1`). Lo recién registrado se ve igual, porque el estado local
+  suma la cola a la copia.
 """
 
 from functools import wraps
@@ -14,7 +17,13 @@ from django.http import HttpResponseForbidden
 
 from cuentas.prueba import en_modo_prueba
 
-from .sincronizacion import marcar_actividad, sincronizar
+from .models import Foto
+from .sincronizacion import copia_vencida, marcar_actividad, sincronizar
+
+
+def _copia_con_operario_de_prueba() -> bool:
+    foto = Foto.objects.filter(id=1).first()
+    return foto is not None and foto.datos.get("operario_prueba") is not None
 
 
 def solo_kiosco(vista):
@@ -35,13 +44,15 @@ def solo_kiosco(vista):
         request.kiosco_prueba = prueba
         marcar_actividad()
         if prueba:
-            # El indicador de estado se consulta cada pocos segundos: no fuerza la copia.
-            coincidencia = request.resolver_match
-            es_estado = coincidencia is not None and coincidencia.url_name == "estado"
-            sincronizar(forzar_copia=not es_estado, cerrar=False)
+            # En la nube la conexión se reusa entre pedidos: no se cierra acá.
+            renovar = (
+                request.GET.get("actualizar") == "1"
+                or copia_vencida(settings.KIOSCO_PRUEBA_COPIA_CADA)
+                or not _copia_con_operario_de_prueba()
+            )
+            sincronizar(forzar_copia=renovar, cerrar=False)
         respuesta = vista(request, *args, **kwargs)
         if prueba and request.method == "POST":
-            # En la nube la conexión se reusa entre pedidos: no se cierra acá.
             sincronizar(cerrar=False)
         return respuesta
 
