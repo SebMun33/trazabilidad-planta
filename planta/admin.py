@@ -8,6 +8,8 @@ Operario (Cuentas → Usuarios); acá solo se consultan.
 
 from django.contrib import admin
 
+from cuentas.prueba import operario_prueba_id
+
 from . import models
 
 
@@ -28,6 +30,14 @@ class OperarioAdmin(SoloLecturaAdmin):
     list_filter = ["activo"]
     search_fields = ["nombre"]
     actions = None
+
+    def get_queryset(self, request):
+        operarios = super().get_queryset(request)
+        if request.user.is_superuser:
+            return operarios
+        # El operario de prueba solo lo ve el superusuario (ver cuentas/prueba.py).
+        prueba_id = operario_prueba_id()
+        return operarios.exclude(operario_id=prueba_id) if prueba_id else operarios
 
 
 class TrabajoOperacionInline(admin.TabularInline):

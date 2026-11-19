@@ -17,6 +17,7 @@ from django.conf import settings
 from django.db import DatabaseError, IntegrityError, OperationalError, connections, transaction
 from django.utils import timezone
 
+from cuentas.prueba import DISPOSITIVO_PRUEBA
 from planta.models import Evento
 from planta.servicios import ReglaDeNegocioError
 from planta.servicios.notas import crear_nota
@@ -37,7 +38,7 @@ class Resultado:
     sin_conexion: bool = False
 
 
-def _evento(p: EventoPendiente) -> Evento:
+def _evento(p: EventoPendiente, prueba_id: int | None = None) -> Evento:
     return Evento(
         evento_id=p.evento_id,
         tipo=p.tipo,
@@ -49,18 +50,25 @@ def _evento(p: EventoPendiente) -> Evento:
         observaciones=p.observaciones or None,
         anula_evento_id=p.anula_evento_id,
         registrado_por=p.registrado_por,
-        dispositivo=settings.PLANTA_DISPOSITIVO,
+        # Lo que registra el operario de prueba queda marcado (ver cuentas/prueba.py).
+        dispositivo=(
+            DISPOSITIVO_PRUEBA
+            if prueba_id is not None and prueba_id in (p.operario_id, p.cargado_por_id)
+            else settings.PLANTA_DISPOSITIVO
+        ),
     )
 
 
 def enviar_pendientes(resultado: Resultado) -> None:
     """Inserta la cola en orden. Corta en el primer error de conexión."""
+    foto = Foto.objects.filter(id=1).first()
+    prueba_id = foto.datos.get("operario_prueba") if foto else None
     for pendiente in EventoPendiente.objects.filter(enviado_en=None, rechazado_en=None):
         pendiente.intentos += 1
         try:
             with transaction.atomic(using=CENTRAL):
                 Evento.objects.using(CENTRAL).bulk_create(
-                    [_evento(pendiente)], ignore_conflicts=True
+                    [_evento(pendiente, prueba_id)], ignore_conflicts=True
                 )
         except OperationalError as error:
             pendiente.ultimo_error = str(error)[:500]

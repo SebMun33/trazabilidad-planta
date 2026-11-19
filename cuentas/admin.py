@@ -14,6 +14,7 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 
 from .nombres import normalizar
+from .prueba import USUARIO_PRUEBA, es_usuario_prueba
 from .roles import OPCIONES, OPERARIO, ROLES, asignar_rol, etiqueta_de, rol_de
 
 Usuario = get_user_model()
@@ -163,10 +164,14 @@ class UsuarioAdmin(UserAdmin):
 
     def get_queryset(self, request):
         usuarios = super().get_queryset(request)
-        return usuarios if request.user.is_superuser else usuarios.filter(is_superuser=False)
+        if request.user.is_superuser:
+            return usuarios
+        # El usuario de prueba («operario») solo lo ve el superusuario.
+        return usuarios.filter(is_superuser=False).exclude(username__iexact=USUARIO_PRUEBA)
 
     def _toca_superusuario(self, request, obj) -> bool:
-        return obj is not None and obj.is_superuser and not request.user.is_superuser
+        reservado = obj is not None and (obj.is_superuser or es_usuario_prueba(obj))
+        return reservado and not request.user.is_superuser
 
     def has_change_permission(self, request, obj=None):
         if self._toca_superusuario(request, obj):

@@ -26,7 +26,7 @@
   {% for t, op in resumen.abiertas %}
     <tr><td><a href="{% url 'oficina:trabajo' t.trabajo_id %}">{{ t.revision.plano }}</a></td>
         <td>{{ op.operacion.operacion_nro }} · {{ op.operacion.descripcion|default:"" }}</td>
-        <td>{{ op.ultimo_evento.operario }}</td><td>{{ op.ultimo_evento.ocurrido_en|date:"d/m H:i" }}</td></tr>
+        <td>{{ op.ultimo_evento.operario }}{% if op.ultimo_evento.operario_id and op.ultimo_evento.operario_id == operario_prueba_id %} <span class="estado e-prueba">prueba</span>{% endif %}</td><td>{{ op.ultimo_evento.ocurrido_en|date:"d/m H:i" }}</td></tr>
   {% endfor %}
   </tbody>
 </table>

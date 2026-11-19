@@ -8,6 +8,7 @@ from datetime import timedelta
 
 from django.utils import timezone
 
+from cuentas.prueba import operario_prueba_id
 from planta.models import CierreDia, Maquina, Nota, Operario, TrabajoRevision
 from planta.servicios import estado as est
 
@@ -110,6 +111,8 @@ def armar_foto() -> dict:
             [m.maquina_id, m.nombre_corto or m.nombre]
             for m in Maquina.objects.order_by("maquina_id")
         ],
+        # El operario de prueba viaja en la copia, pero el kiosco de planta lo oculta.
+        "operario_prueba": operario_prueba_id(),
         "dias_cerrados": _dias_cerrados(timezone.localdate()),
         "trabajos": [_trabajo(t, notas.get(t.trabajo_id, [])) for t in trabajos],
     }

@@ -14,7 +14,10 @@ services:
       pip install --upgrade uv &&
       uv sync --frozen --no-dev &&
       uv run --no-sync python manage.py collectstatic --noinput
+    # La base SQLite del kiosco solo se usa en el modo prueba del superusuario;
+    # el disco de Render se borra en cada despliegue y se vuelve a crear acá.
     startCommand: >-
+      .venv/bin/python manage.py migrate --database=local --noinput &&
       .venv/bin/gunicorn config.wsgi:application
       --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --access-logfile -
     healthCheckPath: /salud/

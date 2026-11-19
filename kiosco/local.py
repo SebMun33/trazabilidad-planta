@@ -168,6 +168,7 @@ class PlantaLocal:
     maquinas: dict[int, str]
     dias_cerrados: set[date]
     trabajos: list[TrabajoLocal]
+    operario_prueba: int | None = None
 
     @property
     def activos(self) -> list[TrabajoLocal]:
@@ -179,12 +180,17 @@ class PlantaLocal:
     def dia_cerrado(self, fecha: date) -> bool:
         return fecha in self.dias_cerrados
 
-    def buscar_operario(self, nombre: str) -> int | None:
+    def operarios_visibles(self, prueba: bool = False) -> dict[int, str]:
+        """En modo prueba, solo el operario de prueba; en planta, todos menos él."""
+        return {i: n for i, n in self.operarios.items() if (i == self.operario_prueba) == prueba}
+
+    def buscar_operario(self, nombre: str, prueba: bool = False) -> int | None:
         """Operario por nombre, sin importar mayúsculas ni tildes."""
         buscado = normalizar(nombre)
         if not buscado:
             return None
-        return next((i for i, n in self.operarios.items() if normalizar(n) == buscado), None)
+        visibles = self.operarios_visibles(prueba)
+        return next((i for i, n in visibles.items() if normalizar(n) == buscado), None)
 
     def abiertas_de(self, operario_id: int) -> list[tuple[TrabajoLocal, OperacionLocal]]:
         return [
@@ -356,6 +362,7 @@ def cargar_planta() -> PlantaLocal | None:
         maquinas=maquinas,
         dias_cerrados={date.fromisoformat(f) for f in datos["dias_cerrados"]},
         trabajos=sorted(trabajos, key=TrabajoLocal.orden),
+        operario_prueba=datos.get("operario_prueba"),
     )
 
 

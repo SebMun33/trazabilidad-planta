@@ -28,6 +28,9 @@ Resumen y arquitectura en `README.md`; decisiones en `docs/decisiones/`.
   `perms.cuentas.ver_importes`; la copia del kiosco (`kiosco/foto.py`) no
   incluye precios, costos ni importes (hay un test).
 - Las vistas del kiosco **no tocan la base `default`**: solo la SQLite `local`.
+  Única excepción: el modo prueba del superusuario (`cuentas/prueba.py`,
+  `kiosco/acceso.py`), que sincroniza dentro del pedido. El usuario «operario»
+  queda oculto para todos menos el superusuario.
 
 ## Comandos
 

@@ -28,7 +28,7 @@
       <td>{{ e.ocurrido_en|date:"H:i" }}</td>
       <td>{{ e.get_tipo_display }}{% if e.tipo == "anulacion" %} <span class="suave">({{ e.registrado_por }})</span>{% endif %}</td>
       <td>{% if r %}<a href="{% url 'oficina:trabajo' e.trabajo_id %}">{{ r.plano }}</a>{% endif %}</td>
-      <td>{{ e.operario|default:"—" }}</td>
+      <td>{{ e.operario|default:"—" }}{% if e.operario_id and e.operario_id == operario_prueba_id %} <span class="estado e-prueba">prueba</span>{% endif %}</td>
       <td>{{ e.maquina_id|default:"—" }}</td>
       <td>{{ e.observaciones|default:"" }}</td>
       <td>{% if e.tipo != "anulacion" and e.evento_id not in resumen.anulados and not resumen.cerrado and perms.cuentas.anular_registros %}

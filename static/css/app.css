@@ -118,6 +118,7 @@ tr.anulado td:last-child { text-decoration: none; }
 .e-en_proceso { background: var(--aviso-fondo); color: var(--aviso); }
 .e-pausada { background: var(--fondo); color: var(--suave); border: 1px solid var(--borde); }
 .e-terminado, .e-terminada { background: var(--ok-fondo); color: var(--ok); }
+.e-prueba { background: var(--aviso-fondo); color: var(--aviso); font-style: italic; }
 .e-retirado { background: var(--fondo); color: var(--suave); text-decoration: line-through; }
 .u1 { background: var(--fondo); color: var(--suave); }
 .u2 { background: var(--aviso-fondo); color: var(--aviso); }
@@ -223,4 +224,11 @@ kbd {
 
 @media (max-width: 760px) {
   .tabla { display: block; overflow-x: auto; }
+}
+
+/* Modo prueba del kiosco (solo superusuario) */
+.k-prueba {
+  display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; justify-content: space-between;
+  padding: .6rem 1.25rem; background: var(--aviso-fondo); color: var(--aviso);
+  border-bottom: 2px dashed var(--aviso);
 }

@@ -2,12 +2,18 @@
 {% load static %}
 {% block titulo %}{% block titulo_kiosco %}Kiosco{% endblock %} · Planta{% endblock %}
 {% block cuerpo %}
+{% if prueba %}
+<div class="k-prueba" role="status">
+  <span><strong>Modo prueba</strong> · Estás como «operario». Lo que registres va a la base real, marcado como prueba.</span>
+  <form method="post" action="{% url 'oficina:prueba_salir' %}">{% csrf_token %}<button class="boton">Salir del modo prueba</button></form>
+</div>
+{% endif %}
 <div class="kiosco" data-inactividad="{{ inactividad }}" data-inicio="{% url 'kiosco:inicio' %}">
   <header class="k-barra">
     <a class="marca" href="{% url 'kiosco:inicio' %}">Planta</a>
     {% if operario %}
       <span class="k-operario">{{ operario }}</span>
-      <a class="boton" href="{% url 'kiosco:inicio' %}">Cambiar operario</a>
+      {% if not prueba %}<a class="boton" href="{% url 'kiosco:inicio' %}">Cambiar operario</a>{% endif %}
     {% endif %}
     <div class="k-estado" hx-get="{% url 'kiosco:estado' %}" hx-trigger="load, every 10s" aria-live="polite"></div>
   </header>

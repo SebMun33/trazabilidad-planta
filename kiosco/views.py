@@ -22,6 +22,7 @@ TIPOS_NOTA = [(t, Nota.Tipo(t).label) for t in local.TIPOS_KIOSCO]
 def _contexto(request, planta, operario_id=None, **extra) -> dict:
     contexto = {
         "planta": planta,
+        "prueba": getattr(request, "kiosco_prueba", False),
         "inactividad": settings.KIOSCO_INACTIVIDAD_SEGUNDOS,
         "tipos_nota": TIPOS_NOTA,
         **extra,
@@ -38,18 +39,23 @@ def _contexto(request, planta, operario_id=None, **extra) -> dict:
     return contexto
 
 
-def _planta_y_operario(operario_id):
-    """(planta, respuesta): si falta algo, la respuesta redirige o informa."""
+def _planta_y_operario(request, operario_id):
+    """(planta, respuesta): si falta algo, la respuesta redirige o informa.
+
+    En planta no se puede entrar como el operario de prueba, y en modo prueba
+    solo se puede entrar como él.
+    """
     planta = local.cargar_planta()
     if planta is None:
         return None, redirect("kiosco:inicio")
-    if operario_id not in planta.operarios:
+    if operario_id not in planta.operarios_visibles(request.kiosco_prueba):
         return None, redirect("kiosco:inicio")
     return planta, None
 
 
-def _operarios(planta) -> list[tuple[int, str]]:
-    return sorted(planta.operarios.items(), key=lambda par: par[1].casefold())
+def _operarios(request, planta) -> list[tuple[int, str]]:
+    visibles = planta.operarios_visibles(request.kiosco_prueba)
+    return sorted(visibles.items(), key=lambda par: par[1].casefold())
 
 
 @solo_kiosco
@@ -58,10 +64,12 @@ def inicio(request):
     planta = local.cargar_planta()
     if planta is None:
         return render(request, "kiosco/esperando.html", _contexto(request, None))
-    contexto = _contexto(request, planta, operarios=_operarios(planta))
+    if request.kiosco_prueba and planta.operario_prueba is not None:
+        return redirect("kiosco:pendientes", planta.operario_prueba)
+    contexto = _contexto(request, planta, operarios=_operarios(request, planta))
     if request.method == "POST":
         nombre = request.POST.get("nombre", "")
-        operario_id = planta.buscar_operario(nombre)
+        operario_id = planta.buscar_operario(nombre, prueba=request.kiosco_prueba)
         if operario_id is not None:
             return redirect("kiosco:pendientes", operario_id)
         contexto.update(nombre=nombre, error=f"No hay ningún operario llamado «{nombre}».")
@@ -71,7 +79,7 @@ def inicio(request):
 
 @solo_kiosco
 def pendientes(request, operario_id):
-    planta, respuesta = _planta_y_operario(operario_id)
+    planta, respuesta = _planta_y_operario(request, operario_id)
     if respuesta:
         return respuesta
     return render(
@@ -90,7 +98,7 @@ def pendientes(request, operario_id):
 
 @solo_kiosco
 def trabajo(request, operario_id, trabajo_id):
-    planta, respuesta = _planta_y_operario(operario_id)
+    planta, respuesta = _planta_y_operario(request, operario_id)
     if respuesta:
         return respuesta
     t = planta.trabajo(trabajo_id)
@@ -101,7 +109,7 @@ def trabajo(request, operario_id, trabajo_id):
 
 @solo_kiosco
 def operacion(request, operario_id, trabajo_id, operacion_id):
-    planta, respuesta = _planta_y_operario(operario_id)
+    planta, respuesta = _planta_y_operario(request, operario_id)
     if respuesta:
         return respuesta
     t = planta.trabajo(trabajo_id)
@@ -115,6 +123,10 @@ def operacion(request, operario_id, trabajo_id, operacion_id):
     accion = request.POST.get("accion", "")
     maquina = request.POST.get("maquina_id", "")
     ejecutor = request.POST.get("operario", "")
+    if not ejecutor.isdigit() or int(ejecutor) not in planta.operarios_visibles(
+        request.kiosco_prueba
+    ):
+        ejecutor = ""
     datos = {
         "accion": accion,
         "maquina_id": int(maquina) if maquina.isdigit() else None,
@@ -153,7 +165,7 @@ def _pantalla_operacion(request, planta, operario_id, t, op, error=None, status=
         error=error,
         quien=op.operario_nombre if op.abierta else None,
         maquinas=sorted(planta.maquinas.items()),
-        operarios=_operarios(planta),
+        operarios=_operarios(request, planta),
         notas=t.notas_de(op.operacion_id),
     )
     return render(
@@ -173,7 +185,7 @@ def _confirmar(request, planta, operario_id, t, op, datos, pregunta):
 @solo_kiosco
 def nota(request, operario_id, trabajo_id):
     """Observación, sugerencia, pregunta o respuesta escrita en el kiosco."""
-    planta, respuesta = _planta_y_operario(operario_id)
+    planta, respuesta = _planta_y_operario(request, operario_id)
     if respuesta:
         return respuesta
     volver = request.POST.get("volver", "")
@@ -201,7 +213,7 @@ def nota(request, operario_id, trabajo_id):
 @require_POST
 @solo_kiosco
 def deshacer(request, operario_id, evento_id):
-    planta, respuesta = _planta_y_operario(operario_id)
+    planta, respuesta = _planta_y_operario(request, operario_id)
     if respuesta:
         return respuesta
     try:

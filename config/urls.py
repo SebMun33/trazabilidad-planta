@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import redirect_to_login
@@ -23,8 +22,7 @@ urlpatterns = [
         name="admin_ingreso",
     ),
     path("admin/", admin.site.urls),
+    # En la nube el kiosco solo responde en modo prueba (superusuario); en la PC
+    # de planta y en desarrollo, a la IP local. Ver kiosco/acceso.py.
+    path("kiosco/", include("kiosco.urls")),
 ]
-
-# En desarrollo se ven las dos partes; en la nube, solo oficina.
-if settings.KIOSCO_HABILITADO:
-    urlpatterns.append(path("kiosco/", include("kiosco.urls")))

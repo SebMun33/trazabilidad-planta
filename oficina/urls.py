@@ -20,4 +20,7 @@ urlpatterns = [
     path("registros/", views.registros, name="registros"),
     path("registros/<uuid:evento_id>/anular/", views.evento_anular, name="evento_anular"),
     path("cierre/", views.cierre, name="cierre"),
+    path("prueba/entrar/", views.prueba_entrar, name="prueba_entrar"),
+    path("prueba/salir/", views.prueba_salir, name="prueba_salir"),
+    path("prueba/deshacer/", views.prueba_deshacer, name="prueba_deshacer"),
 ]

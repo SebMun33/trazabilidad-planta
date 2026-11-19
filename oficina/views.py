@@ -3,6 +3,7 @@
 from datetime import date, timedelta
 
 from django.contrib import messages
+from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import redirect, render
@@ -11,6 +12,7 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
+from cuentas import prueba
 from planta.models import (
     Cliente,
     CotizacionSinPedido,
@@ -613,3 +615,62 @@ def cierre(request):
         "oficina/cierre.html",
         {"fecha": fecha, "resumen": resumen_dia(fecha), "hoy": timezone.localdate()},
     )
+
+
+# --- probar como operario (solo superusuario) ------------------------------------
+solo_superusuario = user_passes_test(lambda u: u.is_active and u.is_superuser)
+
+
+@require_POST
+@solo_superusuario
+def prueba_entrar(request):
+    """Crea (si hace falta) el usuario «operario» y abre el kiosco en modo prueba."""
+    prueba.usuario_prueba(crear=True)
+    request.session[prueba.SESION_PRUEBA] = True
+    return redirect("kiosco:inicio")
+
+
+@require_POST
+@solo_superusuario
+def prueba_salir(request):
+    request.session.pop(prueba.SESION_PRUEBA, None)
+    messages.info(request, "Saliste del modo prueba del kiosco.")
+    return redirect("oficina:pendientes")
+
+
+@require_POST
+@solo_superusuario
+def prueba_deshacer(request):
+    """Anula todos los registros vigentes del operario de prueba."""
+    operario_id = prueba.operario_prueba_id()
+    anulados = 0
+    cerrados = 0
+    if operario_id is not None:
+        ya_anulados = Evento.objects.exclude(anula_evento=None).values("anula_evento_id")
+        vigentes = (
+            Evento.objects.filter(operario_id=operario_id)
+            .exclude(tipo=Evento.Tipo.ANULACION)
+            .exclude(evento_id__in=ya_anulados)
+            .order_by("-ocurrido_en")
+        )
+        for evento in vigentes:
+            try:
+                anular_evento(evento.evento_id, request.user.get_username(), "Limpieza de pruebas")
+            except ReglaDeNegocioError:
+                cerrados += 1
+            else:
+                anulados += 1
+    if anulados:
+        texto = "Se anuló 1 registro" if anulados == 1 else f"Se anularon {anulados} registros"
+        messages.success(request, f"{texto} de prueba.")
+    else:
+        messages.info(request, "No había registros de prueba para anular.")
+    if cerrados:
+        messages.warning(
+            request,
+            f"{cerrados} registros de prueba son de días cerrados: reabrí el día para anularlos.",
+        )
+    volver = request.POST.get("volver", "")
+    if not url_has_allowed_host_and_scheme(volver, allowed_hosts={request.get_host()}):
+        volver = reverse("oficina:pendientes")
+    return redirect(volver)

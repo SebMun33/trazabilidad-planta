@@ -14,6 +14,10 @@
   </nav>
   <div class="usuario">
     <span>{{ request.user.get_username }} <span class="suave">· {{ rol_etiqueta }}</span></span>
+    {% if request.user.is_superuser %}
+    <form method="post" action="{% url 'oficina:prueba_entrar' %}" target="_blank">{% csrf_token %}<button class="boton-link" title="Abre el kiosco en otra pestaña como el usuario «operario»">Probar como operario</button></form>
+    <form method="post" action="{% url 'oficina:prueba_deshacer' %}" onsubmit="return confirm('¿Anular todos los registros del usuario «operario»?')">{% csrf_token %}<input type="hidden" name="volver" value="{{ request.get_full_path }}"><button class="boton-link" title="Anula todos los avances registrados por «operario»">Deshacer pruebas</button></form>
+    {% endif %}
     {% if request.user.is_staff %}<a href="{% url 'admin:index' %}">Admin</a>{% endif %}
     <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="boton-link">Salir</button></form>
   </div>

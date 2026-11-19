@@ -37,7 +37,7 @@
       <td>{{ op.operacion.descripcion|default:"—" }}</td>
       <td>{{ op.operacion.observaciones|default:"" }}</td>
       <td><span class="estado e-{{ op.estado }}">{{ op.etiqueta }}</span></td>
-      <td>{% if op.ultimo_evento %}{{ op.ultimo_evento.ocurrido_en|date:"d/m H:i" }} · {{ op.ultimo_evento.operario }}{% else %}—{% endif %}</td>
+      <td>{% if op.ultimo_evento %}{{ op.ultimo_evento.ocurrido_en|date:"d/m H:i" }} · {{ op.ultimo_evento.operario }}{% if op.ultimo_evento.operario_id and op.ultimo_evento.operario_id == operario_prueba_id %} <span class="estado e-prueba">prueba</span>{% endif %}{% else %}—{% endif %}</td>
     </tr>
   {% endfor %}
   </tbody>
@@ -50,7 +50,7 @@
   <li class="nota-hilo nota-{{ h.nota.tipo }}">
     <div class="nota-cabecera">
       <span class="estado e-nota-{{ h.nota.tipo }}">{{ h.nota.get_tipo_display }}</span>
-      <strong>{{ h.nota.autor }}</strong>
+      <strong>{{ h.nota.autor }}</strong>{% if h.nota.operario_id and h.nota.operario_id == operario_prueba_id %} <span class="estado e-prueba">prueba</span>{% endif %}
       <span class="suave">{{ h.nota.escrita_en|date:"d/m/Y H:i" }}</span>
       {% with op=operaciones|obtener:h.nota.operacion_id %}{% if op %}<span class="suave">· Op. {{ op.operacion.operacion_nro }}</span>{% endif %}{% endwith %}
       {% if h.pregunta_abierta %}<span class="estado u3">Sin respuesta</span>{% endif %}
@@ -58,7 +58,7 @@
     <p>{{ h.nota.texto|linebreaksbr }}</p>
     {% for r in h.respuestas %}
     <div class="nota-respuesta">
-      <div class="nota-cabecera"><strong>{{ r.autor }}</strong> <span class="suave">{{ r.escrita_en|date:"d/m/Y H:i" }}</span></div>
+      <div class="nota-cabecera"><strong>{{ r.autor }}</strong>{% if r.operario_id and r.operario_id == operario_prueba_id %} <span class="estado e-prueba">prueba</span>{% endif %} <span class="suave">{{ r.escrita_en|date:"d/m/Y H:i" }}</span></div>
       <p>{{ r.texto|linebreaksbr }}</p>
     </div>
     {% endfor %}
@@ -111,7 +111,7 @@
       <td>{{ e.ocurrido_en|date:"d/m/Y H:i" }}</td>
       <td>{{ e.get_tipo_display }}{% if e.tipo == "anulacion" %} de «{{ e.anula_evento.get_tipo_display }}» ({{ e.registrado_por }}){% endif %}</td>
       <td>{% if op %}{{ op.operacion.operacion_nro }}{% else %}<span class="suave">quitada</span>{% endif %}</td>
-      <td>{{ e.operario|default:"—" }}</td>
+      <td>{{ e.operario|default:"—" }}{% if e.operario_id and e.operario_id == operario_prueba_id %} <span class="estado e-prueba">prueba</span>{% endif %}</td>
       <td>{{ e.observaciones|default:"" }}</td>
       <td>{% if e.tipo != "anulacion" and e.evento_id not in anulados and perms.cuentas.anular_registros %}
         <form method="post" action="{% url 'oficina:evento_anular' e.evento_id %}" class="en-linea">
