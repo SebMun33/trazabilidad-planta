@@ -38,10 +38,11 @@ def solo_kiosco(vista):
             # El indicador de estado se consulta cada pocos segundos: no fuerza la copia.
             coincidencia = request.resolver_match
             es_estado = coincidencia is not None and coincidencia.url_name == "estado"
-            sincronizar(forzar_copia=not es_estado)
+            sincronizar(forzar_copia=not es_estado, cerrar=False)
         respuesta = vista(request, *args, **kwargs)
         if prueba and request.method == "POST":
-            sincronizar()
+            # En la nube la conexión se reusa entre pedidos: no se cierra acá.
+            sincronizar(cerrar=False)
         return respuesta
 
     return envoltura

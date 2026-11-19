@@ -145,7 +145,7 @@ def renovar_copia() -> None:
     Foto.objects.update_or_create(id=1, defaults={"datos": datos, "obtenida_en": pedida_en})
 
 
-def sincronizar(*, forzar_copia: bool = False) -> Resultado:
+def sincronizar(*, forzar_copia: bool = False, cerrar: bool = True) -> Resultado:
     resultado = Resultado()
     usada = False
     try:
@@ -165,7 +165,7 @@ def sincronizar(*, forzar_copia: bool = False) -> Resultado:
         logger.warning("Sin conexión con la base central: %s", error)
     finally:
         conexion = connections[CENTRAL]
-        if usada and not conexion.in_atomic_block:
+        if cerrar and usada and not conexion.in_atomic_block:
             # Sin conexiones abiertas, Neon puede suspender el cómputo inactivo.
             conexion.close()
     return resultado

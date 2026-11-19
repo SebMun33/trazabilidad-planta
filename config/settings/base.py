@@ -36,6 +36,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "planta.middleware.SaludMiddleware",
+    "planta.middleware.MedicionMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -88,7 +89,10 @@ DATABASES["default"]["OPTIONS"].update(
         "connect_timeout": env.int("DB_CONNECT_TIMEOUT", default=10),
     }
 )
-DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=60)
+# Reusar la conexión entre pedidos evita pagar en cada click el saludo TLS con
+# Neon (en otra región que el hosting). Si Neon suspende el cómputo, la
+# verificación de salud la descarta y abre otra.
+DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=300)
 DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 
 # Base `local` (SQLite): copia y cola del kiosco de planta, para seguir
@@ -138,6 +142,9 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "simple"}},
     "root": {"handlers": ["console"], "level": env("DJANGO_LOG_LEVEL", default="INFO")},
 }
+
+# Pedidos más lentos que esto se registran como advertencia (MedicionMiddleware).
+MEDICION_LENTO_SEGUNDOS = env.float("MEDICION_LENTO_SEGUNDOS", default=2.0)
 
 # --- Dominio -----------------------------------------------------------------
 # Identifica qué equipo grabó cada evento (columna `evento.dispositivo`).

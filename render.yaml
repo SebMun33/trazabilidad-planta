@@ -19,7 +19,7 @@ services:
     startCommand: >-
       .venv/bin/python manage.py migrate --database=local --noinput &&
       .venv/bin/gunicorn config.wsgi:application
-      --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --access-logfile -
+      --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60
     healthCheckPath: /salud/
     envVars:
       - key: DJANGO_SETTINGS_MODULE
@@ -34,9 +34,11 @@ services:
         sync: false
       - key: PLANTA_DISPOSITIVO
         value: oficina
-      # Sin conexiones ociosas: Neon puede suspender el cómputo entre usos.
+      # Reusar la conexión con Neon entre clicks (cada conexión nueva cuesta
+      # varias idas y vueltas Virginia–San Pablo). Render Free se duerme a los
+      # 15 min sin uso y cierra la conexión, así Neon también puede suspenderse.
       - key: DB_CONN_MAX_AGE
-        value: "0"
+        value: "300"
       # uv instala Python 3.12 dentro del proyecto, así queda disponible al arrancar.
       - key: UV_PYTHON_INSTALL_DIR
         value: /opt/render/project/src/.uv-python

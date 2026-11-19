@@ -69,6 +69,27 @@ que llegue por mail, cargar en Render:
 
 Los usuarios que quieran recibirlos necesitan un mail cargado en su ficha del admin.
 
+## Velocidad y diagnóstico
+
+Cada pedido deja una línea en los logs de Render:
+
+```
+GET /oficina/pendientes/ 200 total=0.84s base=0.61s consultas=11 conexion_nueva=no
+```
+
+- `total` alto con `base` bajo y `conexion_nueva=sí`: la demora es abrir la
+  conexión con Neon (o despertarlo). Revisá que `DB_CONN_MAX_AGE` sea `300` en
+  *Environment* (si el servicio no se creó desde el Blueprint, ese valor no se
+  actualiza solo).
+- `base` alto: las consultas tardan (Neon está en San Pablo y Render en
+  Virginia: unos 130 ms por consulta).
+- Sin línea durante 30–60 s después de un rato sin uso: Render Free durmió el
+  servicio (se duerme a los 15 min sin visitas) y está arrancando.
+
+Los pedidos de más de `MEDICION_LENTO_SEGUNDOS` (2 s por defecto) salen como
+`WARNING`. El navegador también lo muestra en *Herramientas de desarrollo →
+Red → Tiempos* (encabezado `Server-Timing`).
+
 ## 3. Dominio propio (DNS en DonWeb / Ferozo)
 
 1. En Render: servicio → **Settings → Custom Domains → Add** y escribir
